@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export VERSION="2.20.4"
+export VERSION="2.20.3"
 
 export REGISTRY=docker.coscale.com:5000
 export REGISTRY_USERNAME=
