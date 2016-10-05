@@ -1,0 +1,35 @@
+#!/bin/bash -e
+
+source conf.sh
+source services.sh
+
+NAME=${1:-all}
+
+if [ "$NAME" == "--help" ]; then
+    echo "$0 : stop all services."
+    echo "$0 <service> : stop a specific service."
+    echo "$0 coscale : stop the CoScale services."
+    exit 0
+fi
+
+function stop {
+    SERVICE=$1
+
+    echo "Stopping $SERVICE"
+    docker stop coscale_$SERVICE
+    docker rm coscale_$SERVICE
+}
+
+# Stop the data services
+for SERVICE in $DATA_SERVICES; do
+    if [ "$NAME" == "all" ] || [ "$NAME" == "$SERVICE" ]; then
+        stop $SERVICE
+    fi
+done
+
+# Stop the coscale services
+for SERVICE in $COSCALE_SERVICES $LB_SERVICE; do
+    if [ "$NAME" == "all" ] || [ "$NAME" == "coscale" ] || [ "$NAME" == "$SERVICE" ]; then
+        stop $SERVICE
+    fi
+done
