@@ -34,7 +34,10 @@ function run {
     VOLUMES=""
     if [ -e $VOLUMEFILE ]; then
       for ENTRY in $(<$VOLUMEFILE); do
-        VOLUMES="${VOLUMES}-v `realpath ${ENTRY}` "
+        if [[ "$ENTRY" != "/"* ]]; then
+            ENTRY=`pwd`/$ENTRY
+        fi
+        VOLUMES="${VOLUMES}-v ${ENTRY} "
       done
     fi
 
