@@ -51,7 +51,7 @@ function run {
 # Run the data services
 for SERVICE in $DATA_SERVICES; do
     if [ "$NAME" == "all" ] || [ "$NAME" == "$SERVICE" ]; then
-        run $SERVICE 1.0.0
+        run $SERVICE $VERSION
     fi
 done
 
