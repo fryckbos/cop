@@ -44,7 +44,21 @@ function run {
     echo "Starting $SERVICE:$IMAGE_VERSION"
     docker run -d \
         $LINKS $EXPOSED $VOLUMES $DNS_SWITCHES \
-        -e "API_URL=$API_URL" -e "API_SUPER_USER=$API_SUPER_USER" -e "API_SUPER_PASSWD=$API_SUPER_PASSWD" -e "APP_URL=$APP_URL" -e "MAIL_SERVER=$MAIL_SERVER" -e "FROM_EMAIL=$FROM_EMAIL" -e "SUPPORT_EMAIL=$SUPPORT_EMAIL" -e "RUM_URL=$RUM_URL" -e "ANOMALY_EMAIL=$ANOMALY_EMAIL" \
+        -e "API_URL=$API_URL" \
+        -e "API_SUPER_USER=$API_SUPER_USER" \
+        -e "API_SUPER_PASSWD=$API_SUPER_PASSWD" \
+        -e "APP_URL=$APP_URL" \
+        -e "MAIL_SERVER=$MAIL_SERVER" \
+        -e "MAIL_PORT=$MAIL_PORT" \
+        -e "MAIL_SSL=$MAIL_SSL" \
+        -e "MAIL_AUTH=$MAIL_AUTH" \
+        -e "MAIL_USERNAME=$MAIL_USERNAME" \
+        -e "MAIL_PASSWORD=$MAIL_PASSWORD" \
+        -e "FROM_EMAIL=$FROM_EMAIL" \
+        -e "SUPPORT_EMAIL=$SUPPORT_EMAIL" \
+        -e "RUM_URL=$RUM_URL" \
+        -e "ENABLE_HTTPS=$ENABLE_HTTPS" \
+        -e "ANOMALY_EMAIL=$ANOMALY_EMAIL" \
         --name coscale_$SERVICE coscale/$SERVICE:$IMAGE_VERSION
 }
 

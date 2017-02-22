@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export VERSION="3.5.5"
+export VERSION="3.6.1"
 
 export REGISTRY=docker.coscale.com:5000
 export REGISTRY_USERNAME=
@@ -13,8 +13,10 @@ export API_URL=
 export API_SUPER_USER=
 export API_SUPER_PASSWD=
 export APP_URL=
-#RUM_URL has no protocol
+#RUM_URL has no protocol (don't put http://)
 export RUM_URL=
+
+export ENABLE_HTTPS=0
 
 export FROM_EMAIL=dummy@coscale.com
 export SUPPORT_EMAIL=dummy@coscale.com
