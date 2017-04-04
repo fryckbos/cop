@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # VERSION and REGISTRY are provided by CoScale, don't change these.
-export VERSION="3.8.1"
+export VERSION="3.8.12"
 export REGISTRY=docker.coscale.com
 
 # Fill in the registry username and password provided by CoScale.
