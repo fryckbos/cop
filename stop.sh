@@ -16,13 +16,13 @@ function stop {
     SERVICE=$1
 
     echo "Stopping $SERVICE"
-    docker stop coscale_$SERVICE
-    docker rm coscale_$SERVICE
+    docker stop coscale_$SERVICE || echo "(Container not running)"
+    docker rm coscale_$SERVICE || echo "(Container not present)"
 }
 
 # Stop the data services
 for SERVICE in $DATA_SERVICES; do
-    if [ "$NAME" == "all" ] || [ "$NAME" == "data" ] || [ "$NAME" == "$SERVICE" ]; then
+    if [ "$NAME" == "all" ] || [ "$NAME" == "$SERVICE" ]; then
         stop $SERVICE
     fi
 done

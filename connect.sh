@@ -26,6 +26,8 @@ else
     LOG=/var/log/memcached.log
   elif [ "$SERVICE" == "rabbitmq" ]; then
     LOG= /var/log/rabbitmq/rabbit*.log
+  elif [ "$SERVICE" == "rum" ]; then
+    LOG=/var/log/nginx/*.log
   else
     LOG=/var/log/$SERVICE/current
   fi
@@ -37,4 +39,11 @@ else
   fi
 fi
 
-docker exec -it coscale_$SERVICE /bin/bash -c "export TERM=xterm && $ACTION"
+
+
+if [ "$SERVICE" == "postgresql" ] && [ "$1" == "migrate" ]; then
+  cat $2 | docker exec -i coscale_$SERVICE /bin/bash -c "export TERM=xterm && migrate"
+else
+  docker exec -it coscale_$SERVICE /bin/bash -c "export TERM=xterm && $ACTION"
+fi
+
