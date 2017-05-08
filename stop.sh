@@ -22,7 +22,7 @@ function stop {
 
 # Stop the data services
 for SERVICE in $DATA_SERVICES; do
-    if [ "$NAME" == "all" ] || [ "$NAME" == "$SERVICE" ]; then
+    if [ "$NAME" == "all" ] || [ "$NAME" == "data" ] || [ "$NAME" == "$SERVICE" ]; then
         stop $SERVICE
     fi
 done
