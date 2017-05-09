@@ -16,8 +16,8 @@ function stop {
     SERVICE=$1
 
     echo "Stopping $SERVICE"
-    docker stop coscale_$SERVICE
-    docker rm coscale_$SERVICE
+    docker stop coscale_$SERVICE || echo "(Container not running)"
+    docker rm coscale_$SERVICE || echo "(Container not present)"
 }
 
 # Stop the data services

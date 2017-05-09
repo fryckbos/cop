@@ -5,12 +5,18 @@ source services.sh
 
 export DNS_SWITCHES=""
 
+if [ "$1" == "--version" ]; then
+    VERSION="$2"
+    shift #move command line arguments to the left
+    shift #move command line arguments to the left
+fi
+
 NAME=${1:-all}
 
 if [ "$NAME" == "--help" ]; then
-    echo "$0 : run all services."
-    echo "$0 <service> : run a specific service."
-    echo "$0 coscale : run the CoScale services."
+    echo "$0 [--version <version>]: run all services."
+    echo "$0 [--version <version>] <service> : run a specific service."
+    echo "$0 [--version <version>] coscale : run the CoScale services."
     exit 0
 fi
 
@@ -59,6 +65,7 @@ function run {
         -e "RUM_URL=$RUM_URL" \
         -e "ENABLE_HTTPS=$ENABLE_HTTPS" \
         -e "ANOMALY_EMAIL=$ANOMALY_EMAIL" \
+        -e "COSCALE_VERSION=$IMAGE_VERSION" \
         --name coscale_$SERVICE coscale/$SERVICE:$IMAGE_VERSION
 }
 
