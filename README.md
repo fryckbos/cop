@@ -3,6 +3,10 @@ Repository for setting up CoScale on-premise.
 Installation
 ====
 
+Create a *conf.sh* file using *conf.sh.example* as a template
+
+    cp conf.sh.example conf.sh
+
 Update *conf.sh* with your installations parameters. The most important fields to fill in are the **API_URL** and **APP_URL**. These should be set to 'http://<hostname>'. For example:
 
     APP_URL=http://coscale.company.com
