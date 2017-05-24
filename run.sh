@@ -66,6 +66,7 @@ function run {
         -e "ENABLE_HTTPS=$ENABLE_HTTPS" \
         -e "ANOMALY_EMAIL=$ANOMALY_EMAIL" \
         -e "COSCALE_VERSION=$IMAGE_VERSION" \
+        -e "ENABLE_CASSANDRA_CLEANER=$ENABLE_CASSANDRA_CLEANER" \
         --name coscale_$SERVICE coscale/$SERVICE:$IMAGE_VERSION
 }
 
