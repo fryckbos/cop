@@ -37,3 +37,6 @@ export FROM_EMAIL=dummy@coscale.com
 # Fill in the email address of the CoScale administrator below.
 export SUPPORT_EMAIL=dummy@coscale.com
 export ANOMALY_EMAIL=dummy@coscale.com
+
+# Configure whether cassandra data needs to be cleaned up, 0=no, 1=yes
+export ENABLE_CASSANDRA_CLEANER=0
