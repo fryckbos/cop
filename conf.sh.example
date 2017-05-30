@@ -38,5 +38,16 @@ export FROM_EMAIL=dummy@coscale.com
 export SUPPORT_EMAIL=dummy@coscale.com
 export ANOMALY_EMAIL=dummy@coscale.com
 
-# Configure whether cassandra data needs to be cleaned up, 0=no, 1=yes
-export ENABLE_CASSANDRA_CLEANER=0
+# Configure cassandra cleanup.
+# CASSANDRA_CLEANER_SLACK=0 : no cleanup is done
+# CASSANDRA_CLEANER_SLACK=1 : data is cleaned according to the default time-to-live:
+#    RESOLUTION             TTL
+#    1 minute             1 week
+#    5 minutes            1 month
+#    15 minutes           3 months
+#    30 minutes           6 months
+#    1 hour               1 year
+#
+# Choosing a value > 1 will multiply the TTL's accordingly. For example setting CASSANDRA_CLEANER_SLACK=3 
+# will keep data at minute resolution for 3 weeks, at 5 minutes resolution for 3 months etc.
+export CASSANDRA_CLEANER_SLACK=0
