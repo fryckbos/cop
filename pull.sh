@@ -29,7 +29,7 @@ docker login -u "$REGISTRY_USERNAME" -p "$REGISTRY_PASSWORD" -e "$REGISTRY_EMAIL
 
 if [ "$NAME" == "base" ]; then
     for SERVICE in base python java7 java8 rserve numpy; do
-        IMG=coscale/$SERVICE:1.0.0
+        IMG=coscale/$SERVICE:1.1.0
         docker pull $REGISTRY/$IMG
         docker tag $REGISTRY/$IMG $IMG
     done
