@@ -26,6 +26,9 @@ function run {
 
     if [ -e links/$SERVICE ]; then
         LINKS=`cat links/$SERVICE`
+        if [ "$SERVICE" = 'datastore' ] && [ "$USE_EXTERNAL_CASSANDRA" = true ]; then
+            LINKS=$(echo $LINKS | sed 's/--link coscale_cassandra:cassandra//g')
+        fi
     else
         LINKS=""
     fi
