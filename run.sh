@@ -26,6 +26,9 @@ function run {
 
     if [ -e links/$SERVICE ]; then
         LINKS=`cat links/$SERVICE`
+        if [ "$SERVICE" = 'datastore' ] && [ "$USE_EXTERNAL_CASSANDRA" = true ]; then
+            LINKS=$(echo $LINKS | sed 's/--link coscale_cassandra:cassandra//g')
+        fi
     else
         LINKS=""
     fi
@@ -67,6 +70,8 @@ function run {
         -e "ANOMALY_EMAIL=$ANOMALY_EMAIL" \
         -e "COSCALE_VERSION=$IMAGE_VERSION" \
         -e "CASSANDRA_CLEANER_SLACK=$CASSANDRA_CLEANER_SLACK" \
+        -e "USE_EXTERNAL_CASSANDRA=$USE_EXTERNAL_CASSANDRA" \
+        -e "EXTERNAL_CASSANDRA_ENDPOINTS=$EXTERNAL_CASSANDRA_ENDPOINTS" \
         --name coscale_$SERVICE coscale/$SERVICE:$IMAGE_VERSION
 }
 
