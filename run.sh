@@ -46,7 +46,7 @@ function run {
         if [[ "$ENTRY" != "/"* ]]; then
             ENTRY=`pwd`/$ENTRY
         fi
-        VOLUMES="${VOLUMES}-v ${ENTRY} "
+        VOLUMES="${VOLUMES}-v ${ENTRY}:Z "
       done
     fi
 
