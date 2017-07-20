@@ -2,7 +2,7 @@
 
 source ../conf.sh
 
-docker login -u "$REGISTRY_USERNAME" -p "$REGISTRY_PASSWORD" -e "$REGISTRY_EMAIL" $REGISTRY
+docker login -u "$REGISTRY_USERNAME" -p "$REGISTRY_PASSWORD" $REGISTRY
 
 function pull {
     SERVICE=$1

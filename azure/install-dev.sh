@@ -16,7 +16,6 @@ REGPASSWD=`echo $KEY | awk -F: '{ print $2; }'`
 
 sed -i "s|REGISTRY_USERNAME=.*|REGISTRY_USERNAME=$REGUSER|" conf.sh
 sed -i "s|REGISTRY_PASSWORD=.*|REGISTRY_PASSWORD=$REGPASSWD|" conf.sh
-sed -i "s|REGISTRY_EMAIL=.*|REGISTRY_EMAIL=$EMAIL|" conf.sh
 
 sed -i "s|API_URL=.*|API_URL=http://$DNS|" conf.sh
 sed -i "s|APP_URL=.*|APP_URL=http://$DNS|" conf.sh

@@ -25,7 +25,7 @@ fi
 
 NAME=${1:-all}
 
-docker login -u "$REGISTRY_USERNAME" -p "$REGISTRY_PASSWORD" -e "$REGISTRY_EMAIL" $REGISTRY
+docker login -u "$REGISTRY_USERNAME" -p "$REGISTRY_PASSWORD" $REGISTRY
 
 if [ "$NAME" == "base" ]; then
     for SERVICE in base python java7 java8 rserve numpy; do
