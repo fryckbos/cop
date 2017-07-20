@@ -10,7 +10,7 @@ source ../conf.sh
 docker run -d \
     -e CASSANDRA_IS_SEED=true \
     -e CASSANDRA_REPLICATION_FACTOR=$1 \
-    -v `pwd`/../data/cassandra:/var/lib/cassandra \
+    -v `pwd`/../data/cassandra:/var/lib/cassandra:Z \
     --net=host \
     --restart unless-stopped \
     --name coscale_cassandra_seed $REGISTRY/coscale/cassandra:$VERSION
