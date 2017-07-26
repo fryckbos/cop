@@ -62,8 +62,9 @@ pwd > "$DIR/pwd"
 # Output disk space available
 df -h > "$DIR/df"
 
-# Output memory available
+# Output memory available and load on the system
 free -m > "$DIR/free"
+uptime > "$DIR/uptime"
 
 # Output version 
 echo $VERSION > "$DIR/version"
