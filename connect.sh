@@ -25,7 +25,7 @@ else
   elif [ "$SERVICE" == "memcached" ]; then
     LOG=/var/log/memcached.log
   elif [ "$SERVICE" == "rabbitmq" ]; then
-    LOG= /var/log/rabbitmq/rabbit*.log
+    LOG=/var/log/rabbitmq/rabbit*.log
   elif [ "$SERVICE" == "rum" ]; then
     LOG=/var/log/nginx/*.log
   else
