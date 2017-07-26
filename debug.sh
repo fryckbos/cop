@@ -51,6 +51,11 @@ for SERVICE in $COSCALE_SERVICES $LB_SERVICE; do
     fi
 done
 
+# Output docker information
+docker info > "$DIR/docker_info"
+docker version > "$DIR/docker_version"
+docker ps -a > "$DIR/docker_ps"
+
 # Output current location to see on which disk we are
 pwd > "$DIR/pwd"
 
