@@ -37,14 +37,14 @@ function debug {
     docker inspect coscale_$SERVICE > "$DIR/$SERVICE/inspect" || true
 }
 
-# Stop the data services
+# Loop the data services for debug info
 for SERVICE in $DATA_SERVICES; do
     if [ "$NAME" == "all" ] || [ "$NAME" == "data" ] || [ "$NAME" == "$SERVICE" ]; then
         debug $DIR $SERVICE
     fi
 done
 
-# Stop the coscale services
+# Loop the coscale services for debug info
 for SERVICE in $COSCALE_SERVICES $LB_SERVICE; do
     if [ "$NAME" == "all" ] || [ "$NAME" == "coscale" ] || [ "$NAME" == "$SERVICE" ]; then
         debug $DIR $SERVICE
