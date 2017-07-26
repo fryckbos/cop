@@ -28,13 +28,13 @@ function debug {
     mkdir -p "$DIR/$SERVICE"
 
     # Output internal logs to dir
-    ./connect $SERVICE log > "$DIR/$SERVICE/log_internal"
+    ./connect.sh $SERVICE log > "$DIR/$SERVICE/log_internal" || true
 
     # Output docker logs to dir
-    docker logs coscale_$SERVICE > "$DIR/$SERVICE/log_docker"
+    docker logs coscale_$SERVICE > "$DIR/$SERVICE/log_docker" || true
 
     # Output docker inspect to dir
-    docker inspect coscale_$SERVICE > "$DIR/$SERVICE/inspect"
+    docker inspect coscale_$SERVICE > "$DIR/$SERVICE/inspect" || true
 }
 
 # Stop the data services
