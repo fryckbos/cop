@@ -70,5 +70,5 @@ uptime > "$DIR/uptime"
 echo $VERSION > "$DIR/version"
 
 # Tar the directory and remove 
-tar -zcvf "$DATE.tar.gz" "$DIR"
+tar -zcvf "debug/$DATE.tar.gz" "$DIR"
 rm -rf "$DIR"
