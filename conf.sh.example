@@ -55,3 +55,6 @@ export EXTERNAL_CASSANDRA_ENDPOINTS=cassandra001:9042,cassandra002:9042
 # Choosing a value > 1 will multiply the TTL's accordingly. For example setting CASSANDRA_CLEANER_SLACK=3
 # will keep data at minute resolution for 3 weeks, at 5 minutes resolution for 3 months etc.
 export CASSANDRA_CLEANER_SLACK=1
+
+# Tune the number of datastore workers (default:10)
+# export DATASTORE_THREADS=30
