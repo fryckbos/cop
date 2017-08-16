@@ -2,6 +2,11 @@
 
 source conf.sh
 
+if [ $# -lt 1 ]; then
+    echo "Usage: `basename $0` {file}" 1>&2
+    exit 255
+fi
+
 file=$1
 PID=$$
 echo "Starting upload of file [${file}] with username [${REGISTRY_USERNAME}]"
