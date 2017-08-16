@@ -58,3 +58,7 @@ for SERVICE in $COSCALE_SERVICES $LB_SERVICE; do
     fi
 done
 
+# Pull the debug container
+if [ "$NAME" == "diag" ]; then
+    pull diag latest
+fi
