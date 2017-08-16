@@ -5,6 +5,7 @@ if [ "$#" -lt 1 ]; then
   echo "     bash : starts an interactive bash console (default)"
   echo "     log : get the full service log"
   echo "     tail : get a tailf of the service log"
+  echo "     jstack : create a jstack of the Java process in the container"
   echo "     <cmd> : execute any command directly"
 fi
 
@@ -36,6 +37,8 @@ else
     ACTION="cat $LOG"
   elif [ "$ACTION" == "tail" ]; then
     ACTION="tail -f -n 100 $LOG"
+  elif [ "$ACTION" == "jstack" ]; then
+    ACTION='jstack `ps aux | grep java | grep -v grep | awk '"'"'{ print $2; }'"'"'`'
   fi
 fi
 
