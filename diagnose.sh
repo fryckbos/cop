@@ -185,6 +185,7 @@ function get_logs {
 
     mkdir -p logs
 
+    # Get the service logs
     for SERVICE in $COSCALE_SERVICES $LB_SERVICE; do
         info "  Processing $SERVICE"
         DIR=/var/log/$SERVICE
@@ -195,6 +196,22 @@ function get_logs {
         fi
     done
 
+    # Get the agent logs
+    BATCH=10000
+    OFFSET=0
+    AGENT_LOGFILE=agent.log
+
+    for i in `seq 10`; do
+        info "Retrieving $BATCH agent logs at offset $OFFSET..."
+        docker exec coscale_elasticsearch /bin/bash -c 'curl -s -XGET "http://localhost:9200/agent/_search?pretty&from='$OFFSET'&size='$BATCH'" -d "{\"query\":{\"range\":{\"_timestamp\":{\"gte\":\"now-'$HOURS'h\",\"lte\":\"now\"}}}}"' > logs/$AGENT_LOGFILE.$i
+        LINES=$(cat logs/$AGENT_LOGFILE.$i | wc -l)
+        if [ $LINES -lt $(($BATCH * 5)) ]; then break; fi
+        OFFSET=$(($OFFSET + $BATCH))
+    done
+    tar czf logs/agent-logs.tgz logs/$AGENT_LOGFILE.*
+    rm logs/$AGENT_LOGFILE.*
+
+    # Package it up
     FILENAME=$(get_filename logs tgz)
     tar czf $FILENAME logs
     rm -Rf logs
