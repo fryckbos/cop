@@ -185,7 +185,7 @@ function get_logs {
 
     mkdir -p logs
 
-    for SERVICE in $COSCALE_SERVICES; do
+    for SERVICE in $COSCALE_SERVICES $LB_SERVICE; do
         info "  Processing $SERVICE"
         DIR=/var/log/$SERVICE
         docker exec coscale_$SERVICE /bin/bash -c 'if [ -e '"$DIR"' ]; then cd '"$DIR"'; tar czf /logs.tgz `find . -cmin -'"$MINUTES"'`; else exit 1; fi'
