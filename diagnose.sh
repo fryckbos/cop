@@ -224,6 +224,8 @@ function start_logger {
         -v /var/run/docker.sock:/var/run/docker.sock \
         --net=host --pid=host \
         --restart unless-stopped \
+        -e "HTTP_PROXY=$HTTP_PROXY" \
+        -e "HTTPS_PROXY=$HTTPS_PROXY" \
         --name coscale_${LOGGER_NAME} coscale/diag /opt/coscale/logger.sh 1
 }
 
