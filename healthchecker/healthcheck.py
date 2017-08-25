@@ -55,7 +55,7 @@ class EmailAlerter:
 
 class HttpCheck:
 
-    def __init__(self, name, method, url, data=None):
+    def __init__(self, name, method, url, data=None, check_certs=True):
         self.name = name
 
         self.method = method
@@ -74,9 +74,9 @@ class HttpCheck:
 
         try:
             if self.method == 'GET':
-                r = requests.get(self.url, timeout = 60)
+                r = requests.get(self.url, timeout = 60, verify = check_certs)
             elif self.method == 'POST':
-                r = requests.post(self.url, data = self.data, timeout = 60)
+                r = requests.post(self.url, data = self.data, timeout = 60, verify = check_certs)
 
             if r.status_code != 200:
                 raise Exception('Incorrect status code: %d' % r.status_code)
@@ -203,6 +203,7 @@ if __name__ == '__main__':
 
     check_period = get_env_var('CHECK_PERIOD', 'int')
     test = get_env_var('TEST_HEALTH_ALERT', 'bool')
+    check_certs = not get_env_var('IGNORE_CERTIFICATE_ERRORS', 'bool')
 
     alerter = EmailAlerter(mail_server, mail_port, mail_ssl, mail_auth, mail_username, mail_password, from_email, support_email)
     if test:
@@ -211,9 +212,9 @@ if __name__ == '__main__':
                      "This email was sent while starting the HealthChecker because the TEST_HEALTH_ALERT environment variable was present.")
 
     checker = Checker(alerter, check_period)
-    checker.add_check(HttpCheck('Api login', 'POST', '%s/api/v1/users/login/' % api_url, {'email' : api_user, 'password' : api_passwd}))
-    checker.add_check(HttpCheck('Api datastore health', 'POST', '%s/api/v1/app/00076273-bd30-4916-9594-9b6c23758fc6/data/healthCheck/' % api_url))
-    checker.add_check(HttpCheck('Api event health', 'GET', '%s/api/v1/app/00076273-bd30-4916-9594-9b6c23758fc6/events/healthCheck/' % api_url))
-    checker.add_check(HttpCheck('App login page', 'GET', '%s/' % app_url))
-    checker.add_check(HttpCheck('Rum snippet', 'GET', 'http://%s/rum/v1/js/coscale-rum.js' % rum_url))
+    checker.add_check(HttpCheck('Api login', 'POST', '%s/api/v1/users/login/' % api_url, data={'email' : api_user, 'password' : api_passwd}, check_certs=check_certs))
+    checker.add_check(HttpCheck('Api datastore health', 'POST', '%s/api/v1/app/00076273-bd30-4916-9594-9b6c23758fc6/data/healthCheck/' % api_url, check_certs=check_certs))
+    checker.add_check(HttpCheck('Api event health', 'GET', '%s/api/v1/app/00076273-bd30-4916-9594-9b6c23758fc6/events/healthCheck/' % api_url, check_certs=check_certs))
+    checker.add_check(HttpCheck('App login page', 'GET', '%s/' % app_url, check_certs=check_certs))
+    checker.add_check(HttpCheck('Rum snippet', 'GET', 'http://%s/rum/v1/js/coscale-rum.js' % rum_url, check_certs=check_certs))
     checker.run()

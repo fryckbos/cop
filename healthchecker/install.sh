@@ -1,9 +1,11 @@
 #!/bin/bash
 
-source conf.sh
+# Change working directory
+cd `dirname $0`
 
-export TEST_HEALTH_ALERT=true
-export CHECK_PERIOD=60
+# Load the configurations
+source ../conf.sh
+source conf.sh
 
 ERROR=0
 
@@ -72,5 +74,6 @@ docker run -d \
     -e "RUM_URL=$RUM_URL" \
     -e "TEST_HEALTH_ALERT=$TEST_HEALTH_ALERT" \
     -e "CHECK_PERIOD=$CHECK_PERIOD" \
+    -e "IGNORE_CERTIFICATE_ERRORS=$IGNORE_CERTIFICATE_ERRORS" \
     --restart always \
     --name coscale_healthchecker coscale/healthchecker:1.0.0

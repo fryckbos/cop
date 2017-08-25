@@ -1,0 +1,5 @@
+#!/bin/bash
+
+export TEST_HEALTH_ALERT=true
+export CHECK_PERIOD=60
+export IGNORE_CERTIFICATE_ERRORS=false
