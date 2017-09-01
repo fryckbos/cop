@@ -55,7 +55,7 @@ class EmailAlerter:
 
 class HttpCheck:
 
-    def __init__(self, name, method, url, data=None, check_certs=True):
+    def __init__(self, name, method, url, data=None, check_certs=True, expected_status=[200]):
         self.name = name
 
         self.method = method
@@ -64,6 +64,7 @@ class HttpCheck:
 
         self.url = url
         self.data = data
+        self.expected_status = expected_status
 
     def get_name(self):
         return self.name
@@ -78,7 +79,7 @@ class HttpCheck:
             elif self.method == 'POST':
                 r = requests.post(self.url, data = self.data, timeout = 60, verify = check_certs)
 
-            if r.status_code != 200:
+            if r.status_code not in self.expected_status:
                 raise Exception('Incorrect status code: %d' % r.status_code)
 
         except Exception as e:
