@@ -76,6 +76,9 @@ function run {
         --name coscale_$SERVICE coscale/$SERVICE:$IMAGE_VERSION
 }
 
+mkdir data/zookeeper
+chmod 777 -R data/zookeeper
+
 # Run the data services
 for SERVICE in $DATA_SERVICES; do
     if [ "$NAME" == "all" ] || [ "$NAME" == "data" ] || [ "$NAME" == "$SERVICE" ]; then
@@ -83,13 +86,14 @@ for SERVICE in $DATA_SERVICES; do
     fi
 done
 
+
 if [ "$NAME" == "all" ]; then
     echo "Sleeping 30 seconds to bring the data services up."
     sleep 30
 fi
 
 # Run the coscale services
-for SERVICE in $COSCALE_SERVICES $LB_SERVICE; do
+for SERVICE in $DEPENDENT_SERVICES $DEPENDENT_SERVICES $COSCALE_SERVICES $LB_SERVICE; do
     if [ "$NAME" == "all" ] || [ "$NAME" == "coscale" ] || [ "$NAME" == "$SERVICE" ]; then
         run $SERVICE $VERSION
     fi
