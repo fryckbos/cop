@@ -93,7 +93,7 @@ if [ "$NAME" == "all" ]; then
 fi
 
 # Run the coscale services
-for SERVICE in $DEPENDENT_SERVICES $DEPENDENT_SERVICES $COSCALE_SERVICES $LB_SERVICE; do
+for SERVICE in $DEPENDENT_SERVICES $COSCALE_SERVICES $LB_SERVICE; do
     if [ "$NAME" == "all" ] || [ "$NAME" == "coscale" ] || [ "$NAME" == "$SERVICE" ]; then
         run $SERVICE $VERSION
     fi
