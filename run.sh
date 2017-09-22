@@ -76,7 +76,7 @@ function run {
         --name coscale_$SERVICE coscale/$SERVICE:$IMAGE_VERSION
 }
 
-mkdir data/zookeeper
+mkdir -p data/zookeeper
 chmod 777 -R data/zookeeper
 
 # Run the data services
