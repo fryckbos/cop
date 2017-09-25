@@ -1,1 +1,1 @@
-data/kafka:/tmp/kafka-logs
+data/kafka:/var/lib/kafka
