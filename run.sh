@@ -50,9 +50,15 @@ function run {
       done
     fi
 
+    if [ -e misc/$SERVICE ]; then
+        MISC=`cat expose/$SERVICE`
+    else
+        MISC=""
+    fi
+
     echo "Starting $SERVICE:$IMAGE_VERSION"
     docker run -d \
-        $LINKS $EXPOSED $VOLUMES $DNS_SWITCHES \
+        $LINKS $EXPOSED $VOLUMES $DNS_SWITCHES $MISC \
         -e "API_URL=$API_URL" \
         -e "API_SUPER_USER=$API_SUPER_USER" \
         -e "API_SUPER_PASSWD=$API_SUPER_PASSWD" \
@@ -73,6 +79,7 @@ function run {
         -e "USE_EXTERNAL_CASSANDRA=$USE_EXTERNAL_CASSANDRA" \
         -e "EXTERNAL_CASSANDRA_ENDPOINTS=$EXTERNAL_CASSANDRA_ENDPOINTS" \
         -e "DATASTORE_THREADS=$DATASTORE_THREADS" \
+        -e "KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://$KAFKA_URL:9092"
         --name coscale_$SERVICE coscale/$SERVICE:$IMAGE_VERSION
 }
 
