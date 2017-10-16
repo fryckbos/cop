@@ -58,3 +58,7 @@ export CASSANDRA_CLEANER_SLACK=1
 
 # Tune the number of datastore workers (default:10)
 # export DATASTORE_THREADS=30
+
+# Set to true to enable streaming functionality
+export ENABLE_STREAMING=true
+
