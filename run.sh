@@ -51,7 +51,7 @@ function run {
     fi
 
     if [ -e misc/$SERVICE ]; then
-        MISC=`cat expose/$SERVICE`
+        MISC=`cat misc/$SERVICE`
     else
         MISC=""
     fi
