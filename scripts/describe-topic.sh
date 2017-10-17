@@ -1,1 +1,1 @@
-./connect.sh kafka JMX_PORT=1234 /root/kafka/bin/kafka-topics.sh --zookeeper zookeeper --describe --topic $1
+./connect.sh kafka kafka-topics --zookeeper zookeeper:32181 --describe --topic $1
