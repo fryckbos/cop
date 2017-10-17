@@ -79,12 +79,9 @@ function run {
         -e "USE_EXTERNAL_CASSANDRA=$USE_EXTERNAL_CASSANDRA" \
         -e "EXTERNAL_CASSANDRA_ENDPOINTS=$EXTERNAL_CASSANDRA_ENDPOINTS" \
         -e "DATASTORE_THREADS=$DATASTORE_THREADS" \
-        -e "KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://$KAFKA_URL:9092"
+        -e "KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://$KAFKA_URL:9092" \
         --name coscale_$SERVICE coscale/$SERVICE:$IMAGE_VERSION
 }
-
-mkdir -p data/zookeeper
-chmod 777 -R data/zookeeper
 
 # Run the data services
 for SERVICE in $DATA_SERVICES; do
