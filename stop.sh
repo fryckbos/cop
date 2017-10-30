@@ -12,9 +12,6 @@ if [ "$NAME" == "--help" ]; then
     exit 0
 fi
 
-# Before stopping all services, gather debug information
-./diagnose.sh -tq inspect-service $NAME
-
 function stop {
     SERVICE=$1
 

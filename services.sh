@@ -7,5 +7,5 @@ fi
 
 export DATA_SERVICES="rabbitmq $CASSANDRA memcached postgresql elasticsearch zookeeper"
 export LB_SERVICE="haproxy"
-export COSCALE_SERVICES="anomalydetectorservice alerter analysismanager api app cron datastore mailer pageminer reporter anomalymatcher triggermatcher rum rumdatareceiver collector rumaggregator streamingroller streamingrollerwriteback"
+export COSCALE_SERVICES="api app cron datastore streamingroller streamingrollerwriteback rum rumdatareceiver rumaggregator"
 export DEPENDENT_SERVICES="kafka"
