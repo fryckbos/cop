@@ -1,4 +1,5 @@
 /conf.sh
+/data-cluster/conf.sh
 /data/**
 /debug/**
 /.project

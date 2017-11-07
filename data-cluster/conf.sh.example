@@ -1,0 +1,9 @@
+#!/bin/bash
+
+source ../conf.sh
+
+# Replication factor for Cassandra and Kafka
+export REPLICATION_FACTOR=2
+
+# Array of nodes in the cluster, eg. (node1 node2 node3)
+export NODES=()
