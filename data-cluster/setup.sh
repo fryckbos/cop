@@ -78,7 +78,7 @@ if [[ "$SERVICE" == "all" ]] || [[ "$SERVICE" == "kafka" ]]; then
     docker run -d \
         -e KAFKA_BROKER_ID=$INDEX \
         -e KAFKA_ZOOKEEPER_CONNECT="$(join_strings ":32181" "," ${NODES[@]})" \
-        -e KAFKA_ADVERTISED_LISTENERS="PLAINTEXT://${NODES[$i]}:9092" \
+        -e KAFKA_ADVERTISED_LISTENERS="PLAINTEXT://${NODES[$((INDEX-1))]}:9092" \
         -e KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=${REPLICATION_FACTOR} \
         -e KAFKA_JMX_PORT=9998 \
         -e KAFKA_JMX_HOSTNAME=localhost \
