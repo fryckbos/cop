@@ -28,6 +28,7 @@ function usage {
     echo "    start-logger      start a diagnostics container that uploads the logs once every hour"
     echo "    stop-logger       stop the logger diagnostics container"
     echo ""
+    echo "    clean-images      remove unused CoScale images from Docker"
     exit 0
 }
 
@@ -252,6 +253,11 @@ function stop_logger {
     docker rm coscale_${LOGGER_NAME} || echo "(Container not present)"
 }
 
+function clean_images {
+    info "Removing unused CoScale images from Docker"
+    docker images | grep 'coscale/' | grep -v "$VERSION" | awk '{ print $3; }' | xargs -n1 docker rmi -f 2>/dev/null
+}
+
 
 # Parse command line arguments
 UPLOAD=false
@@ -291,6 +297,8 @@ elif [ "$ACTION" == "start-logger" ]; then
     start_logger
 elif [ "$ACTION" == "stop-logger" ]; then
     stop_logger
+elif [ "$ACTION" == "clean-images" ]; then
+    clean_images
 else
     usage
 fi
