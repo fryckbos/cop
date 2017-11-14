@@ -1,1 +1,2 @@
-docker exec -it streamingroller-0 java -cp /opt/coscale/streamingroller/bin/streamingroller-1.0.9143-jar-with-dependencies.jar coscale.streamingcore.kafka.LogTopics $@
+. conf.sh
+docker run -it --link coscale_kafka:kafka coscale/streamingroller:$VERSION java -cp /opt/coscale/streamingroller/bin/streamingroller-$VERSION-jar-with-dependencies.jar coscale.streamingcore.kafka.LogTopics -h kafka:9092 $@

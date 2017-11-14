@@ -12,7 +12,6 @@ if [ "$1" == "--version" ]; then
 fi
 
 NAME=${1:-all}
-CONTAINERNAME=${2:-coscale_$NAME}
 
 if [ "$NAME" == "--help" ]; then
     echo "$0 [--version <version>]: run all services."
@@ -24,7 +23,6 @@ fi
 function run {
     SERVICE=$1
     IMAGE_VERSION=$2
-    CONTAINER_NAME=$3
 
     if [ -e links/$SERVICE ]; then
         LINKS=`cat links/$SERVICE`
@@ -83,13 +81,13 @@ function run {
         -e "DATASTORE_THREADS=$DATASTORE_THREADS" \
         -e "KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://$KAFKA_URL:9092" \
         -e "ENABLE_STREAMING=$ENABLE_STREAMING" \
-        --name $CONTAINER_NAME coscale/$SERVICE:$IMAGE_VERSION
+        --name coscale_$SERVICE coscale/$SERVICE:$IMAGE_VERSION
 }
 
 # Run the data services
 for SERVICE in $DATA_SERVICES; do
     if [ "$NAME" == "all" ] || [ "$NAME" == "data" ] || [ "$NAME" == "$SERVICE" ]; then
-        run $SERVICE $VERSION ${2:-coscale_$NAME}
+        run $SERVICE $VERSION
     fi
 done
 
@@ -102,7 +100,7 @@ fi
 # Run the coscale services
 for SERVICE in $DEPENDENT_SERVICES $COSCALE_SERVICES $LB_SERVICE; do
     if [ "$NAME" == "all" ] || [ "$NAME" == "coscale" ] || [ "$NAME" == "$SERVICE" ]; then
-        run $SERVICE $VERSION ${2:-coscale_$NAME}
+        run $SERVICE $VERSION
     fi
 done
 
