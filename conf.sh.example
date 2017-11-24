@@ -22,6 +22,7 @@ export ENABLE_HTTPS=0
 export MAIL_SERVER=
 export MAIL_PORT=25
 export MAIL_SSL=false
+export MAIL_TLS=false
 export MAIL_AUTH=false
 export MAIL_USERNAME=
 export MAIL_PASSWORD=

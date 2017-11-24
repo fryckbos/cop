@@ -60,6 +60,7 @@ function run {
         -e "MAIL_SERVER=$MAIL_SERVER" \
         -e "MAIL_PORT=$MAIL_PORT" \
         -e "MAIL_SSL=$MAIL_SSL" \
+        -e "MAIL_TLS=$MAIL_TLS" \
         -e "MAIL_AUTH=$MAIL_AUTH" \
         -e "MAIL_USERNAME=$MAIL_USERNAME" \
         -e "MAIL_PASSWORD=$MAIL_PASSWORD" \
