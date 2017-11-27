@@ -243,6 +243,7 @@ function test_email {
     RECIPIENT=$1
 
     docker run --rm -it \
+        -v `pwd`/data/ssl:/data/ssl:Z \
         -e "MAIL_SERVER=$MAIL_SERVER" \
         -e "MAIL_PORT=$MAIL_PORT" \
         -e "MAIL_SSL=$MAIL_SSL" \
