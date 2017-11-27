@@ -20,6 +20,8 @@ function usage {
     echo "    system            create a sytem diagnostics package (system.tgz)"
     echo "    check-services    check whether all services are running"
     echo "    test-https        test whether the HTTPS certificates are properly configured"
+    echo "    test-email [recipient-email]"
+    echo "                      test sending an email with the provided configuration"
     echo "    inspect-service [service]"
     echo "                      create a diagnostics package for a service (service.tgz)"
     echo "    htop              execute htop"
@@ -237,6 +239,22 @@ function test_https {
     fi
 }
 
+function test_email {
+    RECIPIENT=$1
+
+    docker run --rm -it \
+        -e "MAIL_SERVER=$MAIL_SERVER" \
+        -e "MAIL_PORT=$MAIL_PORT" \
+        -e "MAIL_SSL=$MAIL_SSL" \
+        -e "MAIL_TLS=$MAIL_TLS" \
+        -e "MAIL_AUTH=$MAIL_AUTH" \
+        -e "MAIL_USERNAME=$MAIL_USERNAME" \
+        -e "MAIL_PASSWORD=$MAIL_PASSWORD" \
+        -e "FROM_EMAIL=$FROM_EMAIL" \
+        --name coscale_test_mailer coscale/mailer:$VERSION \
+        /bin/bash -c "/entrypoint.sh --test $RECIPIENT"
+}
+
 function do_htop {
     if [ "$UPLOAD" == "true" ]; then
         FILENAME=$(get_filename htop html)
@@ -353,6 +371,9 @@ elif [ "$ACTION" == "check-services" ]; then
     check_services
 elif [ "$ACTION" == "test-https" ]; then
     test_https
+elif [ "$ACTION" == "test-email" ]; then
+    RECIPIENT=$2
+    test_email $RECIPIENT
 elif [ "$ACTION" == "inspect-service" ]; then
     SERVICE=${2:-all}
     inspect_service $SERVICE
