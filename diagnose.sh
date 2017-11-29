@@ -19,6 +19,9 @@ function usage {
     echo "Actions"
     echo "    system            create a sytem diagnostics package (system.tgz)"
     echo "    check-services    check whether all services are running"
+    echo "    test-https        test whether the HTTPS certificates are properly configured"
+    echo "    test-email [recipient-email]"
+    echo "                      test sending an email with the provided configuration"
     echo "    inspect-service [service]"
     echo "                      create a diagnostics package for a service (service.tgz)"
     echo "    htop              execute htop"
@@ -28,6 +31,7 @@ function usage {
     echo "    start-logger      start a diagnostics container that uploads the logs once every hour"
     echo "    stop-logger       stop the logger diagnostics container"
     echo ""
+    echo "    clean-images      remove unused CoScale images from Docker"
     exit 0
 }
 
@@ -168,6 +172,90 @@ function check_services {
     exit $DOWN
 }
 
+function test_https {
+    # Check if the environment variable is set and the certificate is present
+    if docker ps | grep coscale_haproxy >/dev/null; then
+        echo "Error: stop haproxy before performing test-https (./stop.sh haproxy)"
+        exit 1
+    fi
+
+    if [ "$ENABLE_HTTPS" != "1" ]; then
+        echo "Error: set ENABLE_HTTPS to 1 in conf.sh"
+        exit 1
+    fi
+
+    if [ ! -e data/ssl/https.pem ]; then
+        echo "Error: HTTPS is enabled but data/ssl/https.pem does not exist"
+        exit 1
+    fi
+
+    if ! grep 'BEGIN CERTIFICATE' data/ssl/https.pem >/dev/null; then
+        echo "Error: could not find BEGIN CERTIFICATE in data/ssl/https.pem"
+        exit 1
+    fi
+
+    if ! grep 'END CERTIFICATE' data/ssl/https.pem >/dev/null; then
+        echo "Error: could not find END CERTIFICATE in data/ssl/https.pem"
+        exit 1
+    fi
+
+    if ! grep 'BEGIN .* PRIVATE KEY' data/ssl/https.pem >/dev/null; then
+        echo "Error: could not find BEGIN PRIVATE KEY in data/ssl/https.pem"
+        exit 1
+    fi
+
+    if ! grep 'END .* PRIVATE KEY' data/ssl/https.pem >/dev/null; then
+        echo "Error: could not find END CERTIFICATE in data/ssl/https.pem"
+        exit 1
+    fi
+
+    # Start a HaProxy container (+ backend) with the HTTPS certificate
+    docker run -d --name coscale_test_https_backend coscale/rum:$VERSION >/dev/null
+
+    docker run -d \
+        -v `pwd`/data/ssl:/data/ssl:Z \
+        -e "ENABLE_HTTPS=$ENABLE_HTTPS" \
+        --link coscale_test_https_backend:api \
+        --link coscale_test_https_backend:app \
+        --link coscale_test_https_backend:rum \
+        --link coscale_test_https_backend:rumdatareceiver \
+        -p 0.0.0.0:443:443 \
+        --name coscale_test_https_haproxy coscale/haproxy:$VERSION >/dev/null
+
+    # Check whether a curl works
+    docker exec coscale_test_https_haproxy /bin/bash -c "curl $API_URL >/dev/null"
+    CURL_STATUS=$?
+
+    # Stop and remove the containers
+    docker rm -f coscale_test_https_backend coscale_test_https_haproxy >/dev/null
+    echo
+
+    if [ "$CURL_STATUS" == "0" ]; then
+        echo "HTTPS is properly configured !"
+        exit 0
+    else
+        echo "Error: HTTPS is not properly configured. (curl failed with $CURL_STATUS)"
+        exit $CURL_STATUS
+    fi
+}
+
+function test_email {
+    RECIPIENT=$1
+
+    docker run --rm -it \
+        -v `pwd`/data/ssl:/data/ssl:Z \
+        -e "MAIL_SERVER=$MAIL_SERVER" \
+        -e "MAIL_PORT=$MAIL_PORT" \
+        -e "MAIL_SSL=$MAIL_SSL" \
+        -e "MAIL_TLS=$MAIL_TLS" \
+        -e "MAIL_AUTH=$MAIL_AUTH" \
+        -e "MAIL_USERNAME=$MAIL_USERNAME" \
+        -e "MAIL_PASSWORD=$MAIL_PASSWORD" \
+        -e "FROM_EMAIL=$FROM_EMAIL" \
+        --name coscale_test_mailer coscale/mailer:$VERSION \
+        /bin/bash -c "/entrypoint.sh --test $RECIPIENT"
+}
+
 function do_htop {
     if [ "$UPLOAD" == "true" ]; then
         FILENAME=$(get_filename htop html)
@@ -252,6 +340,11 @@ function stop_logger {
     docker rm coscale_${LOGGER_NAME} || echo "(Container not present)"
 }
 
+function clean_images {
+    info "Removing unused CoScale images from Docker"
+    docker images | grep 'coscale/' | grep -v "$VERSION" | awk '{ print $3; }' | xargs -n1 docker rmi -f 2>/dev/null
+}
+
 
 # Parse command line arguments
 UPLOAD=false
@@ -277,6 +370,11 @@ if [ "$ACTION" == "system" ]; then
     system
 elif [ "$ACTION" == "check-services" ]; then
     check_services
+elif [ "$ACTION" == "test-https" ]; then
+    test_https
+elif [ "$ACTION" == "test-email" ]; then
+    RECIPIENT=$2
+    test_email $RECIPIENT
 elif [ "$ACTION" == "inspect-service" ]; then
     SERVICE=${2:-all}
     inspect_service $SERVICE
@@ -291,6 +389,8 @@ elif [ "$ACTION" == "start-logger" ]; then
     start_logger
 elif [ "$ACTION" == "stop-logger" ]; then
     stop_logger
+elif [ "$ACTION" == "clean-images" ]; then
+    clean_images
 else
     usage
 fi
