@@ -11,7 +11,6 @@ source conf.sh
 
 INDEX=$1
 SERVICE=${2:all}
-echo "Setting up ${SERVICE} node $INDEX : ${NODES[$((INDEX-1))]}"
 
 function join_strings {
     POSTFIX=$1
@@ -36,6 +35,8 @@ function join_strings {
 if [[ "$SERVICE" == "all" ]] || [[ "$SERVICE" == "cassandra" ]]; then
     # Setup Cassandra
     if [[ "$INDEX" == "1" ]]; then
+        echo "Setting up cassandra seed node : ${NODES[$((INDEX-1))]}"
+
         docker run -d \
             -e CASSANDRA_IS_SEED=true \
             -e CASSANDRA_REPLICATION_FACTOR=${REPLICATION_FACTOR} \
@@ -44,6 +45,8 @@ if [[ "$SERVICE" == "all" ]] || [[ "$SERVICE" == "cassandra" ]]; then
             --restart unless-stopped \
             --name coscale_cassandra_seed $REGISTRY/coscale/cassandra:$VERSION
     else
+        echo "Setting up cassandra node $INDEX : ${NODES[$((INDEX-1))]}"
+
         docker run -d \
             -e CASSANDRA_IS_SEED=false \
             -e CASSANDRA_SEED_ADDRESS=${NODES[0]} \
@@ -56,10 +59,12 @@ fi
 
 if [[ "$SERVICE" == "all" ]] || [[ "$SERVICE" == "zookeeper" ]]; then
     # Setup Zookeeper
+    echo "Setting up zookeeper node $INDEX : ${INTERNAL_NODES[$((INDEX-1))]}"
+
     docker run -d \
         -e ZOOKEEPER_SERVER_ID=$INDEX \
-        -e ZOOKEEPER_CLIENT_PORT=32181 \
-        -e ZOOKEEPER_SERVERS="$(join_strings ":32888:33888" ";" ${NODES[@]})" \
+        -e ZOOKEEPER_CLIENT_PORT=2181 \
+        -e ZOOKEEPER_SERVERS="$(join_strings ":2888:3888" ";" ${INTERNAL_NODES[@]})" \
         -e ZOOKEEPER_TICK_TIME=2000 \
         -e ZOOKEEPER_INIT_LIMIT=5 \
         -e ZOOKEEPER_SYNC_LIMIT=2 \
@@ -75,9 +80,11 @@ fi
 
 if [[ "$SERVICE" == "all" ]] || [[ "$SERVICE" == "kafka" ]]; then
     # Setup Kafka
+    echo "Setting up kafka node $INDEX : ${NODES[$((INDEX-1))]}"
+
     docker run -d \
         -e KAFKA_BROKER_ID=$INDEX \
-        -e KAFKA_ZOOKEEPER_CONNECT="$(join_strings ":32181" "," ${NODES[@]})" \
+        -e KAFKA_ZOOKEEPER_CONNECT="$(join_strings ":2181" "," ${INTERNAL_NODES[@]})" \
         -e KAFKA_ADVERTISED_LISTENERS="PLAINTEXT://${NODES[$((INDEX-1))]}:9092" \
         -e KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=${REPLICATION_FACTOR} \
         -e KAFKA_JMX_PORT=9998 \
