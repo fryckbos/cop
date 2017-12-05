@@ -32,6 +32,8 @@ function usage {
     echo "    stop-logger       stop the logger diagnostics container"
     echo ""
     echo "    clean-images      remove unused CoScale images from Docker"
+    echo "    get-certs [host:port]"
+    echo "                      get SSL certificates for service running on host:port"
     exit 0
 }
 
@@ -350,6 +352,12 @@ function clean_images {
     docker images | grep 'coscale/' | grep -v "$VERSION" | awk '{ print $3; }' | xargs -n1 docker rmi -f 2>/dev/null
 }
 
+function get_certs {
+    HOST=$1
+    info "Getting certificates for $HOST"
+    docker run --rm -it coscale/diag /opt/coscale/get-certs.sh $HOST
+}
+
 
 # Parse command line arguments
 UPLOAD=false
@@ -396,6 +404,9 @@ elif [ "$ACTION" == "stop-logger" ]; then
     stop_logger
 elif [ "$ACTION" == "clean-images" ]; then
     clean_images
+elif [ "$ACTION" == "get-certs" ]; then
+    HOST=$2
+    get_certs $HOST
 else
     usage
 fi
