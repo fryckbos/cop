@@ -199,12 +199,12 @@ function test_https {
         exit 1
     fi
 
-    if ! grep 'BEGIN .* PRIVATE KEY' data/ssl/https.pem >/dev/null; then
+    if ! grep 'BEGIN .*PRIVATE KEY' data/ssl/https.pem >/dev/null; then
         echo "Error: could not find BEGIN PRIVATE KEY in data/ssl/https.pem"
         exit 1
     fi
 
-    if ! grep 'END .* PRIVATE KEY' data/ssl/https.pem >/dev/null; then
+    if ! grep 'END .*PRIVATE KEY' data/ssl/https.pem >/dev/null; then
         echo "Error: could not find END CERTIFICATE in data/ssl/https.pem"
         exit 1
     fi
@@ -223,7 +223,12 @@ function test_https {
         --name coscale_test_https_haproxy coscale/haproxy:$VERSION >/dev/null
 
     # Check whether a curl works
-    docker exec coscale_test_https_haproxy /bin/bash -c "curl $API_URL >/dev/null"
+    CURL_OPTS=""
+    if [ -e data/ssl/selfsigned.crt ]; then
+        CURL_OPTS="--cacert /data/ssl/selfsigned.crt"
+    fi
+
+    docker exec coscale_test_https_haproxy /bin/bash -c "curl $CURL_OPTS $API_URL >/dev/null"
     CURL_STATUS=$?
 
     # Stop and remove the containers
