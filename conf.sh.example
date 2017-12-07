@@ -57,7 +57,7 @@ export CASSANDRA_CLEANER_SLACK=1
 # export DATASTORE_THREADS=30
 
 # Set to true to enable streaming functionality
-export ENABLE_STREAMING=true
+export STREAMING_ENABLED=true
 
 ## DO NOT UPDATE BELOW THIS LINE
 
