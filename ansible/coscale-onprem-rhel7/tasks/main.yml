@@ -1,0 +1,53 @@
+---
+
+- name: Install git
+  yum:
+    name: git
+    state: installed
+    update_cache: yes
+
+- name: Install docker
+  yum:
+    name: docker
+    state: installed
+
+- name: Enable and start the Docker daemon
+  systemd:
+    name: docker
+    enabled: yes
+    state: started
+
+- name: Checkout the coscale repo
+  git:
+    repo: https://github.com/fryckbos/cop.git
+    dest: /opt/coscale/cop
+
+- name: Copy the coscale configuration
+  template: src=conf.template dest=/opt/coscale/cop/conf.sh
+
+- name: Pull the coscale images
+  shell: ./pull.sh
+  args:
+    chdir: /opt/coscale/cop
+
+- name: Install coscale as systemd service
+  copy: src=coscale.service dest=/etc/systemd/system/coscale.service mode=0644
+
+- name: Allow docker containers to connect to the host
+  firewalld:
+    zone: trusted
+    interface: docker0
+    permanent: true
+    state: enabled
+
+- name: Enabled and start CoScale
+  systemd:
+    name: coscale.service
+    daemon_reload: yes
+    enabled: yes
+    state: started
+
+- name: Wait for CoScale to start
+  wait_for:
+    port: 80
+    delay: 60

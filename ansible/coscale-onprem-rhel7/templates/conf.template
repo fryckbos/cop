@@ -1,0 +1,69 @@
+#!/bin/bash
+
+# VERSION and REGISTRY are provided by CoScale, don't change these.
+export VERSION="{{coscale.version}}"
+export REGISTRY=docker.coscale.com
+
+# Fill in the registry username and password provided by CoScale.
+export REGISTRY_USERNAME="{{coscale.registry_username}}"
+export REGISTRY_PASSWORD="{{coscale.registry_password}}"
+
+# Choose a user (has to be a valid email address) and password for the super user.
+export API_SUPER_USER="{{coscale.super_user}}"
+export API_SUPER_PASSWD="{{coscale.super_passwd}}"
+
+# Fill in the hostname of the CoScale machine.
+export CS_HOST="{{coscale.host}}"
+
+# Set ENABLE_HTTPS to 1 to use HTTPS. Place your certificate, intermediates and private key in data/ssl/https.pem
+export ENABLE_HTTPS=0
+
+# Provide a valid email server configuration below
+export MAIL_SERVER="{{coscale.mail_server}}"
+export MAIL_PORT="{{coscale.mail_port}}"
+export MAIL_SSL="{{coscale.mail_ssl}}"
+export MAIL_TLS="{{coscale.mail_tls}}"
+export MAIL_AUTH="{{coscale.mail_auth}}"
+export MAIL_USERNAME="{{coscale.mail_username}}"
+export MAIL_PASSWORD="{{coscale.mail_password}}"
+
+# Fill in the email address from which CoScale emails will be sent.
+export FROM_EMAIL="{{coscale.from_email}}"
+
+# Fill in the email address of the CoScale administrator below.
+export SUPPORT_EMAIL="{{coscale.support_email}}"
+export ANOMALY_EMAIL="{{coscale.anomaly_email}}"
+
+# Set to true when using an external Cassandra cluster
+export USE_EXTERNAL_CASSANDRA=false
+# In case of an external Cassandra cluster, fill in the Cassandra endpoints
+export EXTERNAL_CASSANDRA_ENDPOINTS=cassandra001:9042,cassandra002:9042
+
+# Configure cassandra cleanup.
+# CASSANDRA_CLEANER_SLACK=0 : no cleanup is done
+# CASSANDRA_CLEANER_SLACK=1 : data is cleaned according to the default time-to-live:
+#    RESOLUTION             TTL
+#    1 minute             1 week
+#    5 minutes            1 month
+#    15 minutes           3 months
+#    30 minutes           6 months
+#    1 hour               1 year
+#
+# Choosing a value > 1 will multiply the TTL's accordingly. For example setting CASSANDRA_CLEANER_SLACK=3
+# will keep data at minute resolution for 3 weeks, at 5 minutes resolution for 3 months etc.
+export CASSANDRA_CLEANER_SLACK=1
+
+# Tune the number of datastore workers (default:10)
+# export DATASTORE_THREADS=30
+
+## DO NOT UPDATE BELOW THIS LINE
+
+if [ "$ENABLE_HTTPS" == "1" ]; then
+    PREFIX="https://"
+else
+    PREFIX="http://"
+fi
+
+export API_URL=${PREFIX}${CS_HOST}
+export APP_URL=${PREFIX}${CS_HOST}
+export RUM_URL=${CS_HOST}

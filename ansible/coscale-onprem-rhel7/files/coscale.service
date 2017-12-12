@@ -1,0 +1,13 @@
+[Unit]
+Description=CoScale
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/coscale/cop
+ExecStartPre=/opt/coscale/cop/stop.sh
+ExecStart=/opt/coscale/cop/run.sh
+
+[Install]
+WantedBy=default.target
