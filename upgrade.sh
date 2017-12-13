@@ -1,19 +1,31 @@
-#!/bin/bash
+#!/bin/bash -e
 
-SERVICE=$1
+VERSION=$1
+SERVICES=${2:-coscale}
 
-if [ "$SERVICE" == "" ]; then
-  echo "Usage : $0 [<SERVICE>/all/coscale/data]"
-elif [ "$SERVICE" == "agent-builder" ]; then
-  echo "upgrading agent-builder"
-  ./stop.sh haproxy && ./stop.sh api && ./run.sh api && ./connect.sh api /opt/coscale/agent-builder/update.sh && ./stop.sh api && ./run.sh api && ./run.sh haproxy
-elif [ "$SERVICE" == "all" ]; then
-  ./stop.sh && ./run.sh
-elif [ "$SERVICE" == "coscale" ]; then
-  ./stop.sh coscale && ./run.sh coscale
-elif [ "$SERVICE" == "data" ]; then
-  ./stop.sh data && ./run.sh data
-else
-  echo "upgrading service"
-  ./stop.sh $1 && ./run.sh $1
-fi
+function section {
+    echo
+    echo "--- $1 ---"
+    echo
+}
+
+section "Updating cop git repo"
+git pull
+
+section "Setting new version in conf.sh"
+sed -i "s|VERSION=.*|VERSION=$VERSION|" conf.sh
+echo "Set to version $VERSION"
+
+section "Pulling docker images"
+./pull.sh
+
+section "Stopping $SERVICES services"
+./stop.sh $SERVICES
+
+section "Create actions to update agents"
+./run.sh api
+./connect.sh api /opt/coscale/agent-builder/update.sh
+./stop.sh api
+
+section "Starting $SERVICES services"
+./run.sh $SERVICES

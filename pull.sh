@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 source conf.sh
 source services.sh
@@ -28,8 +28,8 @@ if [ "$1" == "--save" ]; then
 fi
 
 if [ $# -gt 1 ]; then
-        show_help
-        exit 1
+    show_help
+    exit 1
 fi
 
 NAME=${1:-all}
