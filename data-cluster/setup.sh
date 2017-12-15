@@ -110,3 +110,14 @@ if [[ "$SERVICE" == "all" ]] || [[ "$SERVICE" == "streamingroller" ]]; then
         --name coscale_streamingroller $REGISTRY/coscale/streamingroller:$VERSION
 fi
 
+if [[ "$SERVICE" == "all" ]] || [[ "$SERVICE" == "anomalydetector" ]]; then
+    # Setup Anomalydetector
+    echo "Setting up anomalydetector node $INDEX : ${NODES[$((INDEX-1))]}"
+
+    docker run -d \
+        --net=host \
+        --restart unless-stopped \
+        --add-host "kafka:${INTERNAL_NODES[$((INDEX-1))]}" \
+        --name coscale_anomalydetector $REGISTRY/coscale/anomalydetector:$VERSION
+fi
+
