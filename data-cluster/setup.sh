@@ -98,3 +98,15 @@ if [[ "$SERVICE" == "all" ]] || [[ "$SERVICE" == "kafka" ]]; then
         --restart unless-stopped \
         --name coscale_kafka $REGISTRY/coscale/kafka:$VERSION
 fi
+
+if [[ "$SERVICE" == "all" ]] || [[ "$SERVICE" == "streamingroller" ]]; then
+    # Setup Streamingroller
+    echo "Setting up streamingroller node $INDEX : ${NODES[$((INDEX-1))]}"
+
+    docker run -d \
+        --net=host \
+        --restart unless-stopped \
+        --add-host "kafka:${INTERNAL_NODES[$((INDEX-1))]}" \
+        --name coscale_streamingroller $REGISTRY/coscale/streamingroller:$VERSION
+fi
+
