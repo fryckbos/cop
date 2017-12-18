@@ -22,10 +22,21 @@ section "Pulling docker images"
 section "Stopping $SERVICES services"
 ./stop.sh $SERVICES
 
+if [ "$SERVICES" == "all" ]; then
+    section "Starting data services"
+    ./run.sh data
+    sleep 30
+fi
+
 section "Create actions to update agents"
 ./run.sh api
 ./connect.sh api /opt/coscale/agent-builder/update.sh
 ./stop.sh api
 
-section "Starting $SERVICES services"
-./run.sh $SERVICES
+section "Starting coscale services"
+./run.sh coscale
+
+section "Removing old coscale images"
+set +e
+./diagnose.sh clean-images >/dev/null 2>&1
+echo "Done"

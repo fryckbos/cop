@@ -349,7 +349,7 @@ function stop_logger {
 
 function clean_images {
     info "Removing unused CoScale images from Docker"
-    docker images | grep 'coscale/' | grep -v "$VERSION" | awk '{ print $3; }' | xargs -n1 docker rmi -f 2>/dev/null
+    docker images | grep 'coscale/' | grep -v "$VERSION" | grep -v "latest" | awk '{ print $3; }' | xargs -n1 docker rmi -f 2>/dev/null
 }
 
 function get_certs {
