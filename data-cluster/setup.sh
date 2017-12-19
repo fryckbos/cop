@@ -121,3 +121,20 @@ if [[ "$SERVICE" == "all" ]] || [[ "$SERVICE" == "anomalydetector" ]]; then
         --name coscale_anomalydetector $REGISTRY/coscale/anomalydetector:$VERSION
 fi
 
+if [[ "$SERVICE" == "all" ]] || [[ "$SERVICE" == "streamingtriggermatcher" ]]; then
+    # Setup Streamgintriggermatcher
+    echo "Setting up streamingtriggermatcher node $INDEX : ${NODES[$((INDEX-1))]}"
+
+    docker run -d \
+        --restart unless-stopped \
+        --add-host "kafka:${INTERNAL_NODES[$((INDEX-1))]}" \
+	--add-host "rabbitmq:${INTERNAL_NODES[$((INDEX-1))]}" \
+	--add-host "api-staad.coscale.com:${INTERNAL_NODES[$((INDEX-1))]}" \
+        -e "API_URL=$API_URL" \
+        -e "API_SUPER_USER=$API_SUPER_USER" \
+        -e "API_SUPER_PASSWD=$API_SUPER_PASSWD" \
+        --name coscale_streamingtriggermatcher $REGISTRY/coscale/streamingtriggermatcher:$VERSION
+fi
+
+
+
