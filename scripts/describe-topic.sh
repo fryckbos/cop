@@ -1,1 +1,1 @@
-./connect.sh kafka kafka-topics --zookeeper zookeeper:32181 --describe --topic $1
+./connect.sh kafka kafka-topics --zookeeper kafka3:2181 --describe --topic $1
