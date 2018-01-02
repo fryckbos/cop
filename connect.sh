@@ -37,6 +37,10 @@ else
     PURE_DOCKER=true
   elif [ "$SERVICE" == "anomalyaggregator" ]; then
     PURE_DOCKER=true
+  elif [ "$SERVICE" == "anomalydetector" ]; then
+    PURE_DOCKER=true
+  elif [ "$SERVICE" == "anomalydetectorfeeder" ]; then
+    PURE_DOCKER=true
   elif [ "$SERVICE" == "kafka" ]; then
     PURE_DOCKER=true
   elif [ "$SERVICE" == "zookeeper" ]; then
