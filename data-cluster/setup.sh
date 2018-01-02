@@ -136,5 +136,14 @@ if [[ "$SERVICE" == "all" ]] || [[ "$SERVICE" == "streamingtriggermatcher" ]]; t
         --name coscale_streamingtriggermatcher $REGISTRY/coscale/streamingtriggermatcher:$VERSION
 fi
 
+if [[ "$SERVICE" == "all" ]] || [[ "$SERVICE" == "anomalydetectorfeeder" ]]; then
+    # Setup anomalydetectorfeeder
+    echo "Setting up anomalydetectorfeeder node $INDEX : ${NODES[$((INDEX-1))]}"
 
+    docker run -d \
+        --net=host \
+        --restart unless-stopped \
+        --add-host "kafka:${INTERNAL_NODES[$((INDEX-1))]}" \
+        --name coscale_anomalydetectorfeeder $REGISTRY/coscale/anomalydetectorfeeder:$VERSION
+fi
 
