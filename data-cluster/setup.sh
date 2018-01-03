@@ -148,3 +148,17 @@ if [[ "$SERVICE" == "all" ]] || [[ "$SERVICE" == "anomalydetectorfeeder" ]]; the
         --name coscale_anomalydetectorfeeder $REGISTRY/coscale/anomalydetectorfeeder:$VERSION
 fi
 
+if [[ "$SERVICE" == "all" ]] || [[ "$SERVICE" == "anomalyaggregator" ]]; then
+    # Setup Anomalyaggregator
+    echo "Setting up anomalyaggregator node $INDEX : ${NODES[$((INDEX-1))]}"
+
+    docker run -d \
+        --restart unless-stopped \
+        --add-host "kafka:${INTERNAL_NODES[$((INDEX-1))]}" \
+        --add-host "api-staad.coscale.com:${INTERNAL_NODES[$((INDEX-1))]}" \
+        -e "API_URL=$API_URL" \
+        -e "API_SUPER_USER=$API_SUPER_USER" \
+        -e "API_SUPER_PASSWD=$API_SUPER_PASSWD" \
+        --name coscale_anomalyaggregator $REGISTRY/coscale/anomalyaggregator:$VERSION
+fi
+
