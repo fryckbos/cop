@@ -144,7 +144,7 @@ if [[ "$SERVICE" == "all" ]] || [[ "$SERVICE" == "anomalydetectorfeeder" ]]; the
         --net=host \
         --restart unless-stopped \
         --add-host "kafka:${INTERNAL_NODES[$((INDEX-1))]}" \
-	-e "COSCALE_JMX_PORT=6667"
+	-e "COSCALE_JMX_PORT=6667" \
         --name coscale_anomalydetectorfeeder $REGISTRY/coscale/anomalydetectorfeeder:$VERSION
 fi
 
