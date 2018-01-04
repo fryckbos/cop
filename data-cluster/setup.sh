@@ -3,7 +3,7 @@
 if [ $# -lt 1 ]; then
     echo "Usage: `basename $0` node-id {service}" 1>&2
     echo "       node-id: index of this node in the NODES array in conf.sh (starts from 1)"
-    echo "       service: the service to setup (cassandra, zookeeper, kafka). Default: all"
+    echo "       service: the service to setup (all, cassandra, streaming, zookeeper, kafka, streamingroller, anomalydetector, streamingtriggermatcher, anomalydetectorfeeder, anomalyaggregator). Default: all"
     exit 255
 fi
 
@@ -57,7 +57,7 @@ if [[ "$SERVICE" == "all" ]] || [[ "$SERVICE" == "cassandra" ]]; then
     fi
 fi
 
-if [[ "$SERVICE" == "all" ]] || [[ "$SERVICE" == "zookeeper" ]]; then
+if [[ "$SERVICE" == "all" ]] || [[ "$SERVICE" == "streaming" ]] || [[ "$SERVICE" == "zookeeper" ]]; then
     # Setup Zookeeper
     echo "Setting up zookeeper node $INDEX : ${INTERNAL_NODES[$((INDEX-1))]}"
 
@@ -78,7 +78,7 @@ if [[ "$SERVICE" == "all" ]] || [[ "$SERVICE" == "zookeeper" ]]; then
         --name coscale_zookeeper $REGISTRY/coscale/zookeeper:$VERSION
 fi
 
-if [[ "$SERVICE" == "all" ]] || [[ "$SERVICE" == "kafka" ]]; then
+if [[ "$SERVICE" == "all" ]] || [[ "$SERVICE" == "streaming" ]] || [[ "$SERVICE" == "kafka" ]]; then
     # Setup Kafka
     echo "Setting up kafka node $INDEX : ${NODES[$((INDEX-1))]}"
 
@@ -99,7 +99,7 @@ if [[ "$SERVICE" == "all" ]] || [[ "$SERVICE" == "kafka" ]]; then
         --name coscale_kafka $REGISTRY/coscale/kafka:$VERSION
 fi
 
-if [[ "$SERVICE" == "all" ]] || [[ "$SERVICE" == "streamingroller" ]]; then
+if [[ "$SERVICE" == "all" ]] || [[ "$SERVICE" == "streaming" ]] || [[ "$SERVICE" == "streamingroller" ]]; then
     # Setup Streamingroller
     echo "Setting up streamingroller node $INDEX : ${NODES[$((INDEX-1))]}"
 
@@ -110,7 +110,7 @@ if [[ "$SERVICE" == "all" ]] || [[ "$SERVICE" == "streamingroller" ]]; then
         --name coscale_streamingroller $REGISTRY/coscale/streamingroller:$VERSION
 fi
 
-if [[ "$SERVICE" == "all" ]] || [[ "$SERVICE" == "anomalydetector" ]]; then
+if [[ "$SERVICE" == "all" ]] || [[ "$SERVICE" == "streaming" ]] || [[ "$SERVICE" == "anomalydetector" ]]; then
     # Setup Anomalydetector
     echo "Setting up anomalydetector node $INDEX : ${NODES[$((INDEX-1))]}"
 
@@ -121,7 +121,7 @@ if [[ "$SERVICE" == "all" ]] || [[ "$SERVICE" == "anomalydetector" ]]; then
         --name coscale_anomalydetector $REGISTRY/coscale/anomalydetector:$VERSION
 fi
 
-if [[ "$SERVICE" == "all" ]] || [[ "$SERVICE" == "streamingtriggermatcher" ]]; then
+if [[ "$SERVICE" == "all" ]] || [[ "$SERVICE" == "streaming" ]] || [[ "$SERVICE" == "streamingtriggermatcher" ]]; then
     # Setup Streamgintriggermatcher
     echo "Setting up streamingtriggermatcher node $INDEX : ${NODES[$((INDEX-1))]}"
 
@@ -136,7 +136,7 @@ if [[ "$SERVICE" == "all" ]] || [[ "$SERVICE" == "streamingtriggermatcher" ]]; t
         --name coscale_streamingtriggermatcher $REGISTRY/coscale/streamingtriggermatcher:$VERSION
 fi
 
-if [[ "$SERVICE" == "all" ]] || [[ "$SERVICE" == "anomalydetectorfeeder" ]]; then
+if [[ "$SERVICE" == "all" ]] || [[ "$SERVICE" == "streaming" ]] || [[ "$SERVICE" == "anomalydetectorfeeder" ]]; then
     # Setup anomalydetectorfeeder
     echo "Setting up anomalydetectorfeeder node $INDEX : ${NODES[$((INDEX-1))]}"
 
@@ -148,7 +148,7 @@ if [[ "$SERVICE" == "all" ]] || [[ "$SERVICE" == "anomalydetectorfeeder" ]]; the
         --name coscale_anomalydetectorfeeder $REGISTRY/coscale/anomalydetectorfeeder:$VERSION
 fi
 
-if [[ "$SERVICE" == "all" ]] || [[ "$SERVICE" == "anomalyaggregator" ]]; then
+if [[ "$SERVICE" == "all" ]] || [[ "$SERVICE" == "streaming" ]] || [[ "$SERVICE" == "anomalyaggregator" ]]; then
     # Setup Anomalyaggregator
     echo "Setting up anomalyaggregator node $INDEX : ${NODES[$((INDEX-1))]}"
 
@@ -161,4 +161,3 @@ if [[ "$SERVICE" == "all" ]] || [[ "$SERVICE" == "anomalyaggregator" ]]; then
         -e "API_SUPER_PASSWD=$API_SUPER_PASSWD" \
         --name coscale_anomalyaggregator $REGISTRY/coscale/anomalyaggregator:$VERSION
 fi
-
