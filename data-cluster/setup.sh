@@ -118,6 +118,7 @@ if [[ "$SERVICE" == "all" ]] || [[ "$SERVICE" == "anomalydetector" ]]; then
         --net=host \
         --restart unless-stopped \
         --add-host "kafka:${INTERNAL_NODES[$((INDEX-1))]}" \
+	-e JMX_PORT=6667
         --name coscale_anomalydetector $REGISTRY/coscale/anomalydetector:$VERSION
 fi
 
@@ -134,18 +135,6 @@ if [[ "$SERVICE" == "all" ]] || [[ "$SERVICE" == "streamingtriggermatcher" ]]; t
         -e "API_SUPER_USER=$API_SUPER_USER" \
         -e "API_SUPER_PASSWD=$API_SUPER_PASSWD" \
         --name coscale_streamingtriggermatcher $REGISTRY/coscale/streamingtriggermatcher:$VERSION
-fi
-
-if [[ "$SERVICE" == "all" ]] || [[ "$SERVICE" == "anomalydetectorfeeder" ]]; then
-    # Setup anomalydetectorfeeder
-    echo "Setting up anomalydetectorfeeder node $INDEX : ${NODES[$((INDEX-1))]}"
-
-    docker run -d \
-        --net=host \
-        --restart unless-stopped \
-        --add-host "kafka:${INTERNAL_NODES[$((INDEX-1))]}" \
-	-e "COSCALE_JMX_PORT=6667" \
-        --name coscale_anomalydetectorfeeder $REGISTRY/coscale/anomalydetectorfeeder:$VERSION
 fi
 
 if [[ "$SERVICE" == "all" ]] || [[ "$SERVICE" == "anomalyaggregator" ]]; then
