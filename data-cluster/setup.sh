@@ -118,7 +118,7 @@ if [[ "$SERVICE" == "all" ]] || [[ "$SERVICE" == "streaming" ]] || [[ "$SERVICE"
         --net=host \
         --restart unless-stopped \
         --add-host "kafka:${INTERNAL_NODES[$((INDEX-1))]}" \
-	-e JMX_PORT=6667
+	-e JMX_PORT=6667 \
         --name coscale_anomalydetector $REGISTRY/coscale/anomalydetector:$VERSION
 fi
 
