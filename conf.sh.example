@@ -57,10 +57,10 @@ export CASSANDRA_CLEANER_SLACK=1
 # export DATASTORE_THREADS=30
 
 # Set to true to enable streaming functionality
-export STREAMING_ENABLED=true
+export COSCALE_STREAMING_ENABLED=true
 
 # Set to true to enable pre-aggregation of servergroup data
-export GROUPROLLER_ENABLED=false
+export COSCALE_GROUPROLLER_ENABLED=false
 
 ## DO NOT UPDATE BELOW THIS LINE
 
