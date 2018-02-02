@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-source ../conf.sh
+source conf.sh
 
 docker login -u "$REGISTRY_USERNAME" -p "$REGISTRY_PASSWORD" $REGISTRY
 
@@ -13,3 +13,5 @@ function pull {
 }
 
 pull cassandra $VERSION
+pull kafka $VERSION
+pull zookeeper $VERSION

@@ -1,3 +1,4 @@
+
 #!/bin/bash -e
 
 source conf.sh
@@ -12,14 +13,21 @@ if [ "$NAME" == "--help" ]; then
     exit 0
 fi
 
-# Before stopping all services, gather debug information
-./diagnose.sh -tq inspect-service $NAME
+# Services which handle the SIGTERM well and shutdown themselves asap -> They get a higher timeout
+# in case they have some work to do for a proper shutdown.  
+COOPERATIVE_SERVICES="kafka zookeeper"
 
 function stop {
     SERVICE=$1
 
-    echo "Stopping $SERVICE"
-    docker stop coscale_$SERVICE || echo "(Container not running)"
+    if [[ "$COOPERATIVE_SERVICES" == *"$SERVICE"* ]]; then
+        echo "Stopping $SERVICE with large timeout";
+        docker stop --time 1000 coscale_$SERVICE || echo "(Container not running)";
+    else
+        echo "Stopping $SERVICE with default timeout";
+        docker stop coscale_$SERVICE || echo "(Container not running)";
+    fi
+
     docker rm coscale_$SERVICE || echo "(Container not present)"
 }
 
@@ -31,7 +39,7 @@ for SERVICE in $DATA_SERVICES; do
 done
 
 # Stop the coscale services
-for SERVICE in $COSCALE_SERVICES $LB_SERVICE; do
+for SERVICE in $DEPENDENT_SERVICES $COSCALE_SERVICES $LB_SERVICE; do
     if [ "$NAME" == "all" ] || [ "$NAME" == "coscale" ] || [ "$NAME" == "$SERVICE" ]; then
         stop $SERVICE
     fi

@@ -1,0 +1,23 @@
+#!/bin/bash
+
+source ../conf.sh
+
+# Replication factor for Cassandra and Kafka
+export REPLICATION_FACTOR=2
+
+# Array of external addresses (dns names or ips) of the nodes in the cluster, eg. (node1.coscale.com node2.coscale.com node3.coscale.com)
+export NODES=()
+
+# Array of internal addresses (dns names or ips) of the nodes in the cluster, eg. (192.168.100.1 192.168.100.2 192.168.100.3)
+export INTERNAL_NODES=()
+
+### DO NOT CHANGE ANYTHING BELOW THIS LINE (configuration checking) ###
+if [[ "${#NODES[@]}" = "0" ]]; then
+    echo "Error: no NODES configured in conf.sh"
+    exit 1
+fi
+
+if [[ "${#NODES[@]}" != "${#INTERNAL_NODES[@]}" ]]; then
+    echo "Error: The number of elements in NODES (${#NODES[@]}) and INTERNAL_NODES (${#INTERNAL_NODES[@]}) do not match"
+    exit 2
+fi

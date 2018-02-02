@@ -50,9 +50,15 @@ function run {
       done
     fi
 
+    if [ -e misc/$SERVICE ]; then
+        MISC=`cat misc/$SERVICE`
+    else
+        MISC=""
+    fi
+
     echo "Starting $SERVICE:$IMAGE_VERSION"
     docker run -d \
-        $LINKS $EXPOSED $VOLUMES $DNS_SWITCHES \
+        $LINKS $EXPOSED $VOLUMES $DNS_SWITCHES $MISC \
         -e "API_URL=$API_URL" \
         -e "API_SUPER_USER=$API_SUPER_USER" \
         -e "API_SUPER_PASSWD=$API_SUPER_PASSWD" \
@@ -75,6 +81,9 @@ function run {
         -e "EXTERNAL_CASSANDRA_ENDPOINTS=$EXTERNAL_CASSANDRA_ENDPOINTS" \
         -e "DATASTORE_THREADS=$DATASTORE_THREADS" \
         -e "MEMORY_PROFILE=$MEMORY_PROFILE" \
+        -e "KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://$KAFKA_URL:9092" \
+        -e "COSCALE_STREAMING_ENABLED=$COSCALE_STREAMING_ENABLED" \
+        -e "GROUPROLLER_ENABLED=$GROUPROLLER_ENABLED" \
         --name coscale_$SERVICE coscale/$SERVICE:$IMAGE_VERSION
 }
 
@@ -85,14 +94,16 @@ for SERVICE in $DATA_SERVICES; do
     fi
 done
 
+
 if [ "$NAME" == "all" ]; then
     echo "Sleeping 30 seconds to bring the data services up."
     sleep 30
 fi
 
 # Run the coscale services
-for SERVICE in $COSCALE_SERVICES $LB_SERVICE; do
+for SERVICE in $DEPENDENT_SERVICES $COSCALE_SERVICES $LB_SERVICE; do
     if [ "$NAME" == "all" ] || [ "$NAME" == "coscale" ] || [ "$NAME" == "$SERVICE" ]; then
         run $SERVICE $VERSION
     fi
 done
+

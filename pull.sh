@@ -69,7 +69,7 @@ for SERVICE in $DATA_SERVICES; do
 done
 
 # Pull the coscale services
-for SERVICE in $COSCALE_SERVICES $LB_SERVICE; do
+for SERVICE in $DEPENDENT_SERVICES $COSCALE_SERVICES $LB_SERVICE; do
     if [ "$NAME" == "all" ] || [ "$NAME" == "coscale" ] || [ "$NAME" == "$SERVICE" ]; then
         IMG=$(get_image $SERVICE $VERSION)
         pull $IMG

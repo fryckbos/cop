@@ -29,13 +29,29 @@ else
     LOG=/var/log/rabbitmq/rabbit*.log
   elif [ "$SERVICE" == "rum" ]; then
     LOG=/var/log/nginx/*.log
+  elif [ "$SERVICE" == "streamingroller" ]; then
+    PURE_DOCKER=true
+  elif [ "$SERVICE" == "streamingrollerwriteback" ]; then
+    PURE_DOCKER=true
+  elif [ "$SERVICE" == "streamingtriggermatcher" ]; then
+    PURE_DOCKER=true
+  elif [ "$SERVICE" == "anomalyaggregator" ]; then
+    PURE_DOCKER=true
+  elif [ "$SERVICE" == "anomalydetector" ]; then
+    PURE_DOCKER=true
+  elif [ "$SERVICE" == "anomalydetectorfeeder" ]; then
+    PURE_DOCKER=true
+  elif [ "$SERVICE" == "kafka" ]; then
+    PURE_DOCKER=true
+  elif [ "$SERVICE" == "zookeeper" ]; then
+    PURE_DOCKER=true
   else
     LOG=/var/log/$SERVICE/current
   fi
 
-  if [ "$ACTION" == "log" ]; then
+  if [ "$ACTION" == "log" ] && [ "$PURE_DOCKER" != "true" ]; then
     ACTION="cat $LOG"
-  elif [ "$ACTION" == "tail" ]; then
+  elif [ "$ACTION" == "tail" ] && [ "$PURE_DOCKER" != "true" ]; then
     ACTION="tail -f -n 100 $LOG"
   elif [ "$ACTION" == "jstack" ]; then
     ACTION='jstack `ps aux | grep java | grep -v grep | awk '"'"'{ print $2; }'"'"'`'
@@ -46,7 +62,17 @@ fi
 
 if [ "$SERVICE" == "postgresql" ] && [ "$1" == "migrate" ]; then
   cat $2 | docker exec -i coscale_$SERVICE /bin/bash -c "export TERM=xterm && migrate"
+elif [ "$ACTION" == "log" ]; then
+    docker logs coscale_$SERVICE
+elif [ "$ACTION" == "tail" ]; then
+    docker logs -f --tail 100 coscale_$SERVICE
 else
   docker exec -it coscale_$SERVICE /bin/bash -c "export TERM=xterm && $ACTION"
 fi
+
+
+
+
+
+
 
