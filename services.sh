@@ -16,5 +16,5 @@ if [ "$COSCALE_STREAMING_ENABLED" = true ] ; then
     DEPRECATED_SERVICES="$DEPRECATED_SERVICES roller analysismanager anomalydetectorservice"
 else
     COSCALE_SERVICES="$COSCALE_SERVICES roller analysismanager anomalydetectorservice"
-    DEPRECATED_SERVICES="$DEPRECATED_SERVICES streamingtriggermatcher streamingroller streamingrollerwriteback anomalydetector anomalyaggregator"
+    DEPRECATED_SERVICES="$DEPRECATED_SERVICES kafka zookeeper streamingtriggermatcher streamingroller streamingrollerwriteback anomalydetector anomalyaggregator"
 fi
