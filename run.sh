@@ -29,6 +29,9 @@ function run {
         if [ "$SERVICE" = 'datastore' ] && [ "$USE_EXTERNAL_CASSANDRA" = true ]; then
             LINKS=$(echo $LINKS | sed 's/--link coscale_cassandra:cassandra//g')
         fi
+        if [ "$COSCALE_STREAMING_ENABLED" != true ]; then
+            LINKS=$(echo $LINKS | sed 's/--link coscale_kafka:kafka//g')
+        fi
     else
         LINKS=""
     fi
@@ -56,13 +59,13 @@ function run {
         MISC=""
     fi
 
-    ENV_VARS_CONF=`for VAR in $(cat conf.sh | grep '^export' | grep -v REGISTRY | awk '{ print $2; }' | awk -F= '{ print $1; }'); do echo '-e "'${VAR}'='${!VAR}'" \'; done`
+    ENV_VARS_CONF=`for VAR in $(cat conf.sh | grep '^export' | grep -v REGISTRY | awk '{ print $2; }' | awk -F= '{ print $1; }'); do echo '-e '${VAR}'='${!VAR}' '; done`
 
     echo "Starting $SERVICE:$IMAGE_VERSION"
     docker run -d \
         $LINKS $EXPOSED $VOLUMES $DNS_SWITCHES $MISC $ENV_VARS_CONF \
         -e "COSCALE_VERSION=$IMAGE_VERSION" \
-        --restart on-failure
+        --restart on-failure \
         --name coscale_$SERVICE coscale/$SERVICE:$IMAGE_VERSION
 }
 
