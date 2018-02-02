@@ -1,5 +1,3 @@
 data/zookeeper/data:/var/lib/zookeeper/data
 data/zookeeper/log:/var/lib/zookeeper/log
 data/zookeeper/secrets:/etc/zookeeper/secrets
-
-
