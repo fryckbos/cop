@@ -104,6 +104,7 @@ if [[ "$SERVICE" == "all" ]] || [[ "$SERVICE" == "streaming" ]] || [[ "$SERVICE"
     echo "Setting up streamingroller node $INDEX : ${NODES[$((INDEX-1))]}"
 
     docker run -d \
+        -e COSCALE_STREAMING_GROUPROLLER_ENABLED=true \
         --net=host \
         --restart unless-stopped \
         --add-host "kafka:${INTERNAL_NODES[$((INDEX-1))]}" \
@@ -118,7 +119,7 @@ if [[ "$SERVICE" == "all" ]] || [[ "$SERVICE" == "streaming" ]] || [[ "$SERVICE"
         --net=host \
         --restart unless-stopped \
         --add-host "kafka:${INTERNAL_NODES[$((INDEX-1))]}" \
-	-e JMX_PORT=6667 \
+    	-e JMX_PORT=6667 \
         --name coscale_anomalydetector $REGISTRY/coscale/anomalydetector:$VERSION
 fi
 
@@ -129,8 +130,8 @@ if [[ "$SERVICE" == "all" ]] || [[ "$SERVICE" == "streaming" ]] || [[ "$SERVICE"
     docker run -d \
         --restart unless-stopped \
         --add-host "kafka:${INTERNAL_NODES[$((INDEX-1))]}" \
-	--add-host "rabbitmq:${INTERNAL_NODES[$((INDEX-1))]}" \
-	--add-host "api-staad.coscale.com:${INTERNAL_NODES[$((INDEX-1))]}" \
+    	--add-host "rabbitmq:${INTERNAL_NODES[$((INDEX-1))]}" \
+    	--add-host "api-staad.coscale.com:${INTERNAL_NODES[$((INDEX-1))]}" \
         -e "API_URL=$API_URL" \
         -e "API_SUPER_USER=$API_SUPER_USER" \
         -e "API_SUPER_PASSWD=$API_SUPER_PASSWD" \
