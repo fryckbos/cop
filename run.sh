@@ -62,7 +62,7 @@ function run {
     docker run -d \
         $LINKS $EXPOSED $VOLUMES $DNS_SWITCHES $MISC $ENV_VARS_CONF \
         -e "COSCALE_VERSION=$IMAGE_VERSION" \
-        -e "KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://$KAFKA_URL:9092" \
+        --restart on-failure
         --name coscale_$SERVICE coscale/$SERVICE:$IMAGE_VERSION
 }
 
@@ -73,16 +73,14 @@ for SERVICE in $DATA_SERVICES; do
     fi
 done
 
-
 if [ "$NAME" == "all" ]; then
     echo "Sleeping 30 seconds to bring the data services up."
     sleep 30
 fi
 
 # Run the coscale services
-for SERVICE in $DEPENDENT_SERVICES $COSCALE_SERVICES $LB_SERVICE; do
+for SERVICE in $COSCALE_SERVICES $LB_SERVICE; do
     if [ "$NAME" == "all" ] || [ "$NAME" == "coscale" ] || [ "$NAME" == "$SERVICE" ]; then
         run $SERVICE $VERSION
     fi
 done
-

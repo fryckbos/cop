@@ -31,6 +31,16 @@ function stop {
     docker rm coscale_$SERVICE || echo "(Container not present)"
 }
 
+# Stop the deprecated services
+for SERVICE in $DEPRECATED_SERVICES; do
+    if [ "$NAME" == "all" ] || [ "$NAME" == "coscale" ] || [ "$NAME" == "data" ]; then
+        # Don't bother when service is not running 
+        if [ "$(docker ps -a | grep coscale_$SERVICE)" ];
+           stop $SERVICE
+        fi            
+    fi
+done
+
 # Stop the data services
 for SERVICE in $DATA_SERVICES; do
     if [ "$NAME" == "all" ] || [ "$NAME" == "data" ] || [ "$NAME" == "$SERVICE" ]; then
@@ -39,7 +49,7 @@ for SERVICE in $DATA_SERVICES; do
 done
 
 # Stop the coscale services
-for SERVICE in $DEPENDENT_SERVICES $COSCALE_SERVICES $LB_SERVICE; do
+for SERVICE in $COSCALE_SERVICES $LB_SERVICE; do
     if [ "$NAME" == "all" ] || [ "$NAME" == "coscale" ] || [ "$NAME" == "$SERVICE" ]; then
         stop $SERVICE
     fi
