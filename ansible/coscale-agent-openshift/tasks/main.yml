@@ -1,0 +1,73 @@
+---
+
+- name: Login to CoScale
+  uri:
+    url: "http://{{coscale.host}}/api/v1/users/login/"
+    method: "POST"
+    body: "email={{coscale.super_user|urlencode()}}&password={{coscale.super_passwd|urlencode()}}"
+    headers:
+      Content-Type: "application/x-www-form-urlencoded"
+  register: login_response
+
+- name: Create an application
+  uri:
+    url: "http://{{coscale.host}}/api/v1/app/global/"
+    method: "POST"
+    body: "name={{coscale.app_name}}&ownerId=1"
+    headers:
+      Content-Type: "application/x-www-form-urlencoded"
+      HTTPAuthorization: "{{login_response.json.token}}"
+  register: app_response
+
+- name: Create an agent
+  uri:
+    url: "http://{{coscale.host}}/api/v1/app/{{app_response.json.appId}}/agenttemplates/?expand=accesstoken"
+    method: "POST"
+    body: "os=KUBERNETES&name=Kubernetes+agent&description=Kubernetes+agent&custom=false"
+    headers:
+      Content-Type: "application/x-www-form-urlencoded"
+      HTTPAuthorization: "{{login_response.json.token}}"
+  register: agent_response
+
+- name: Add Resource plugin to the agent
+  uri:
+    url: "http://{{coscale.host}}/api/v1/app/{{app_response.json.appId}}/agenttemplates/{{agent_response.json.id}}/plugins/"
+    method: "POST"
+    body: "config=%7B%7D&pluginType=RESOURCES"
+    headers:
+      Content-Type: "application/x-www-form-urlencoded"
+      HTTPAuthorization: "{{login_response.json.token}}"
+
+- name: Add Docker plugin to the agent
+  uri:
+    url: "http://{{coscale.host}}/api/v1/app/{{app_response.json.appId}}/agenttemplates/{{agent_response.json.id}}/plugins/"
+    method: "POST"
+    body: "config=%7B%22MANAGED+PLUGINS+JSON%22%3A%5B%5D%7D&pluginType=DOCKER"
+    headers:
+      Content-Type: "application/x-www-form-urlencoded"
+      HTTPAuthorization: "{{login_response.json.token}}"
+
+- name: Add Kubernetes plugin to the agent
+  uri:
+    url: "http://{{coscale.host}}/api/v1/app/{{app_response.json.appId}}/agenttemplates/{{agent_response.json.id}}/plugins/"
+    method: "POST"
+    body: "config=%7B%7D&pluginType=KUBERNETES"
+    headers:
+      Content-Type: "application/x-www-form-urlencoded"
+      HTTPAuthorization: "{{login_response.json.token}}"
+
+- name: Get certificate for the environment
+  uri:
+    url: "http://{{coscale.host}}/api/v1/app/{{app_response.json.appId}}/agenttemplates/CERT/"
+    headers:
+      HTTPAuthorization: "{{login_response.json.token}}"
+  register: cert_response
+
+- name: Copy OpenShift SecurityContextConstraints configuration
+  copy: src=coscale-ssc.yml dest=/tmp/coscale-ssc.yml
+
+- name: Copy OpenShift DaemonSet configuration
+  template: src=coscale-ds.yml dest=/tmp/coscale-ds.yml
+
+- name: Setup the CoScale agent on OpenShift
+  shell: oc apply -f /tmp/coscale-ssc.yml && oadm new-project coscale --node-selector="" && oc project coscale && oc create serviceaccount coscale && oadm policy add-cluster-role-to-user cluster-admin system:serviceaccount:coscale:coscale && oadm policy add-scc-to-user coscale-scc system:serviceaccount:coscale:coscale && oc apply -f /tmp/coscale-ds.yml

@@ -32,6 +32,8 @@ function usage {
     echo "    stop-logger       stop the logger diagnostics container"
     echo ""
     echo "    clean-images      remove unused CoScale images from Docker"
+    echo "    get-certs [host:port]"
+    echo "                      get SSL certificates for service running on host:port"
     exit 0
 }
 
@@ -199,12 +201,12 @@ function test_https {
         exit 1
     fi
 
-    if ! grep 'BEGIN .* PRIVATE KEY' data/ssl/https.pem >/dev/null; then
+    if ! grep 'BEGIN .*PRIVATE KEY' data/ssl/https.pem >/dev/null; then
         echo "Error: could not find BEGIN PRIVATE KEY in data/ssl/https.pem"
         exit 1
     fi
 
-    if ! grep 'END .* PRIVATE KEY' data/ssl/https.pem >/dev/null; then
+    if ! grep 'END .*PRIVATE KEY' data/ssl/https.pem >/dev/null; then
         echo "Error: could not find END CERTIFICATE in data/ssl/https.pem"
         exit 1
     fi
@@ -223,7 +225,12 @@ function test_https {
         --name coscale_test_https_haproxy coscale/haproxy:$VERSION >/dev/null
 
     # Check whether a curl works
-    docker exec coscale_test_https_haproxy /bin/bash -c "curl $API_URL >/dev/null"
+    CURL_OPTS=""
+    if [ -e data/ssl/selfsigned.crt ]; then
+        CURL_OPTS="--cacert /data/ssl/selfsigned.crt"
+    fi
+
+    docker exec coscale_test_https_haproxy /bin/bash -c "curl $CURL_OPTS $API_URL >/dev/null"
     CURL_STATUS=$?
 
     # Stop and remove the containers
@@ -342,7 +349,13 @@ function stop_logger {
 
 function clean_images {
     info "Removing unused CoScale images from Docker"
-    docker images | grep 'coscale/' | grep -v "$VERSION" | awk '{ print $3; }' | xargs -n1 docker rmi -f 2>/dev/null
+    docker images | grep 'coscale/' | grep -v "$VERSION" | grep -v "latest" | awk '{ print $3; }' | xargs -n1 docker rmi -f 2>/dev/null
+}
+
+function get_certs {
+    HOST=$1
+    info "Getting certificates for $HOST"
+    docker run --rm -it coscale/diag /opt/coscale/get-certs.sh $HOST
 }
 
 
@@ -391,6 +404,9 @@ elif [ "$ACTION" == "stop-logger" ]; then
     stop_logger
 elif [ "$ACTION" == "clean-images" ]; then
     clean_images
+elif [ "$ACTION" == "get-certs" ]; then
+    HOST=$2
+    get_certs $HOST
 else
     usage
 fi
