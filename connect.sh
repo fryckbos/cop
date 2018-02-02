@@ -39,8 +39,6 @@ else
     PURE_DOCKER=true
   elif [ "$SERVICE" == "anomalydetector" ]; then
     PURE_DOCKER=true
-  elif [ "$SERVICE" == "anomalydetectorfeeder" ]; then
-    PURE_DOCKER=true
   elif [ "$SERVICE" == "kafka" ]; then
     PURE_DOCKER=true
   elif [ "$SERVICE" == "zookeeper" ]; then
@@ -69,10 +67,3 @@ elif [ "$ACTION" == "tail" ]; then
 else
   docker exec -it coscale_$SERVICE /bin/bash -c "export TERM=xterm && $ACTION"
 fi
-
-
-
-
-
-
-

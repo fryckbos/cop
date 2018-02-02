@@ -56,12 +56,6 @@ export CASSANDRA_CLEANER_SLACK=1
 # Tune the number of datastore workers (default:10)
 # export DATASTORE_THREADS=30
 
-# Set to true to enable streaming functionality
-export COSCALE_STREAMING_ENABLED=true
-
-# Set to true to enable pre-aggregation of servergroup data
-export COSCALE_GROUPROLLER_ENABLED=false
-
 ## DO NOT UPDATE BELOW THIS LINE
 
 if [ "$ENABLE_HTTPS" == "1" ]; then
