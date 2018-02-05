@@ -21,8 +21,8 @@ function stop {
     SERVICE=$1
 
     if [[ "$COOPERATIVE_SERVICES" == *"$SERVICE"* ]]; then
-        echo "Stopping $SERVICE with large timeout";
-        docker stop --time 1000 coscale_$SERVICE || echo "(Container not running)";
+        echo "Stopping $SERVICE with timeout of 60s";
+        docker stop --time 60 coscale_$SERVICE || echo "(Container not running)";
     else
         echo "Stopping $SERVICE with default timeout";
         docker stop coscale_$SERVICE || echo "(Container not running)";
