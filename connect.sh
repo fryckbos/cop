@@ -29,13 +29,27 @@ else
     LOG=/var/log/rabbitmq/rabbit*.log
   elif [ "$SERVICE" == "rum" ]; then
     LOG=/var/log/nginx/*.log
+  elif [ "$SERVICE" == "streamingroller" ]; then
+    DOCKER_LOGS=true
+  elif [ "$SERVICE" == "streamingrollerwriteback" ]; then
+    DOCKER_LOGS=true
+  elif [ "$SERVICE" == "streamingtriggermatcher" ]; then
+    DOCKER_LOGS=true
+  elif [ "$SERVICE" == "anomalyaggregator" ]; then
+    DOCKER_LOGS=true
+  elif [ "$SERVICE" == "anomalydetector" ]; then
+    DOCKER_LOGS=true
+  elif [ "$SERVICE" == "kafka" ]; then
+    DOCKER_LOGS=true
+  elif [ "$SERVICE" == "zookeeper" ]; then
+    DOCKER_LOGS=true
   else
     LOG=/var/log/$SERVICE/current
   fi
 
-  if [ "$ACTION" == "log" ]; then
+  if [ "$ACTION" == "log" ] && [ "$DOCKER_LOGS" != "true" ]; then
     ACTION="cat $LOG"
-  elif [ "$ACTION" == "tail" ]; then
+  elif [ "$ACTION" == "tail" ] && [ "$DOCKER_LOGS" != "true" ]; then
     ACTION="tail -f -n 100 $LOG"
   elif [ "$ACTION" == "jstack" ]; then
     ACTION='jstack `ps aux | grep java | grep -v grep | awk '"'"'{ print $2; }'"'"'`'
@@ -46,7 +60,10 @@ fi
 
 if [ "$SERVICE" == "postgresql" ] && [ "$1" == "migrate" ]; then
   cat $2 | docker exec -i coscale_$SERVICE /bin/bash -c "export TERM=xterm && migrate"
+elif [ "$ACTION" == "log" ]; then
+    docker logs coscale_$SERVICE
+elif [ "$ACTION" == "tail" ]; then
+    docker logs -f --tail 100 coscale_$SERVICE
 else
   docker exec -it coscale_$SERVICE /bin/bash -c "export TERM=xterm && $ACTION"
 fi
-

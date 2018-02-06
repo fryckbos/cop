@@ -1,0 +1,2 @@
+data/kafka/data:/var/lib/kafka/data
+data/kafka/secrets:/etc/kafka/secrets
