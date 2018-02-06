@@ -17,6 +17,20 @@ fi
 # in case they have some work to do for a proper shutdown.  
 COOPERATIVE_SERVICES="kafka zookeeper"
 
+#Define reverse lists to support stopping in reverse order
+function reverse {
+    local out=()
+    while [ $# -gt 0 ]; do
+        out=("$1" "${out[@]}")
+        shift 1
+    done
+    echo "${out[@]}"
+}
+
+DATA_SERVICES_REV=$(reverse $DATA_SERVICES)
+COSCALE_SERVICES_REV=$(reverse $COSCALE_SERVICES)
+DEPRECATED_SERVICES_REV=$(reverse $DEPRECATED_SERVICES)
+
 function stop {
     SERVICE=$1
 
@@ -32,7 +46,7 @@ function stop {
 }
 
 # Stop the deprecated services
-for SERVICE in $DEPRECATED_SERVICES; do
+for SERVICE in $DEPRECATED_SERVICES_REV; do
     if [ "$NAME" == "all" ] || [ "$NAME" == "coscale" ] || [ "$NAME" == "data" ]; then
         # Don't bother when service is not running 
         if [ "$(docker ps -a | grep coscale_$SERVICE)" ]; then
@@ -42,16 +56,18 @@ for SERVICE in $DEPRECATED_SERVICES; do
     fi
 done
 
+# Stop the coscale services
+for SERVICE in $LB_SERVICE $COSCALE_SERVICES_REV; do
+    if [ "$NAME" == "all" ] || [ "$NAME" == "coscale" ] || [ "$NAME" == "$SERVICE" ]; then
+        stop $SERVICE
+    fi
+done
+
+
 # Stop the data services
-for SERVICE in $DATA_SERVICES; do
+for SERVICE in $DATA_SERVICES_REV; do
     if [ "$NAME" == "all" ] || [ "$NAME" == "data" ] || [ "$NAME" == "$SERVICE" ]; then
         stop $SERVICE
     fi
 done
 
-# Stop the coscale services
-for SERVICE in $COSCALE_SERVICES $LB_SERVICE; do
-    if [ "$NAME" == "all" ] || [ "$NAME" == "coscale" ] || [ "$NAME" == "$SERVICE" ]; then
-        stop $SERVICE
-    fi
-done
