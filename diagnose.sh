@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 # Change working directory
 cd `dirname $0`
 
@@ -28,16 +27,17 @@ function usage {
     echo "    inspect-service [service]"
     echo "                      create a diagnostics package for a service (service.tgz)"
     echo "    log-dump [hours]  create a log dump for the last x hours for all services (logs.tgz)"
-    echo ""
     echo "    backup            create a PostgreSQL backup (backup.tgz)"
     echo ""
     echo "    start-logger      start a diagnostics container that uploads the logs once every hour"
     echo "    stop-logger       stop the logger diagnostics container"
     echo ""
-    echo "    clean-images      remove unused CoScale images from Docker"
     echo "    htop              execute htop"
+    echo "    clean-images      remove unused CoScale images from Docker"
     echo "    get-certs [host:port]"
     echo "                      get SSL certificates for service running on host:port"
+    echo ""
+    echo "    kafka <action>    get more information about the kafka state"
     exit 0
 }
 
@@ -179,9 +179,9 @@ function check_services {
 }
 
 function list_services {
-    echo "DATA_SERVICES=$DATA_SERVICES"
-    echo "COSCALE_SERVICES=$COSCALE_SERVICES"
-    echo "DEPRECATED_SERVICES=$DEPRECATED_SERVICES"
+    info "DATA_SERVICES=$DATA_SERVICES"
+    info "COSCALE_SERVICES=$COSCALE_SERVICES"
+    info "DEPRECATED_SERVICES=$DEPRECATED_SERVICES"
 }
 
 function test_https {
@@ -368,6 +368,61 @@ function get_certs {
     docker run --rm -it coscale/diag /opt/coscale/get-certs.sh $HOST
 }
 
+function kafka {
+    ACTION=${1:-help}
+    shift
+
+    if [ "$ACTION" == "list-consumer-groups" ]; then
+        ./connect.sh kafka kafka-consumer-groups --bootstrap-server localhost:9092 --list
+    elif [ "$ACTION" == "describe-consumer-group" ]; then
+        GROUP=$1
+        ./connect.sh kafka kafka-consumer-groups --bootstrap-server localhost:9092 --describe --group $GROUP
+    elif [ "$ACTION" == "consumer-group-seek-to-end" ]; then
+        GROUP=$1
+        ./connect.sh kafka kafka-consumer-groups --bootstrap-server localhost:9092 --reset-offsets --to-latest --execute --all-topics --group $GROUP
+    elif [ "$ACTION" == "list-topics" ]; then
+        ./connect.sh kafka kafka-topics --zookeeper zookeeper:32181 --list
+    elif [ "$ACTION" == "log-topics" ]; then
+        docker run -it --rm --link coscale_kafka:kafka coscale/streamingroller:$VERSION java -cp /opt/coscale/streamingroller/bin/streamingroller-$VERSION-jar-with-dependencies.jar coscale.streamingcore.kafka.LogTopics -h kafka:9092 $@
+    elif [ "$ACTION" == "manage-topics" ]; then
+        docker run -it --rm --link coscale_kafka:kafka coscale/streamingroller:$VERSION java -cp /opt/coscale/streamingroller/bin/streamingroller-$VERSION-jar-with-dependencies.jar coscale.streamingcore.kafka.ManageTopics -h kafka:9092 $@
+    elif [ "$ACTION" == "describe-topic" ]; then
+        TOPIC=$1
+        ./connect.sh kafka kafka-topics --zookeeper zookeeper:32181 --describe --topic $TOPIC
+    elif [ "$ACTION" == "delete-topic" ]; then
+        TOPIC=$1
+        ./connect.sh kafka kafka-topics --zookeeper zookeeper:32181 --delete --topic $TOPIC
+    elif [ "$ACTION" == "changelogsize" ]; then
+        find 'data/kafka/data' -regex '.*changelog.*' -print0 | du --files0-from=- -ch | sort -h
+    else
+        kafka_usage
+    fi
+}
+
+function kafka_usage {
+    echo "$0 [-urtq] kafka <action>"
+    echo ""
+    echo "Flags"
+    echo "    -u                upload the data to CoScale opdebug"
+    echo "    -r                remove file after upload"
+    echo "    -t                use timestamped filenames"
+    echo "    -q                quiet mode"
+    echo ""
+    echo "Kafka actions"
+    echo "    list-consumer-groups                list all kafka consumer groups"
+    echo "    describe-consumer-group [group]     describe a kafka consumer group"
+    echo "    consumer-group-seek-to-end [group]  seek to the end of all partitions on all topics for the specified consumer group"
+    echo ""
+    echo "    list-topics              list all kafka topics" 
+    echo "    log-topics [opts]        view a live stream of messages on a topic"
+    echo "    manage-topics [opts]     create or update configurations of topics"
+    echo "    describe-topic [topic]   describe a kafka topic"
+    echo "    delete-topic [topic]     delete a kafka topic"
+    echo ""
+    echo "    changelogsize            get the total changelog size"
+    exit 0
+}
+
 
 # Parse command line arguments
 UPLOAD=false
@@ -419,6 +474,9 @@ elif [ "$ACTION" == "clean-images" ]; then
 elif [ "$ACTION" == "get-certs" ]; then
     HOST=$2
     get_certs $HOST
+elif [ "$ACTION" == "kafka" ]; then
+    shift
+    kafka $@
 else
     usage
 fi
