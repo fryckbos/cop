@@ -30,26 +30,26 @@ else
   elif [ "$SERVICE" == "rum" ]; then
     LOG=/var/log/nginx/*.log
   elif [ "$SERVICE" == "streamingroller" ]; then
-    PURE_DOCKER=true
+    DOCKER_LOGS=true
   elif [ "$SERVICE" == "streamingrollerwriteback" ]; then
-    PURE_DOCKER=true
+    DOCKER_LOGS=true
   elif [ "$SERVICE" == "streamingtriggermatcher" ]; then
-    PURE_DOCKER=true
+    DOCKER_LOGS=true
   elif [ "$SERVICE" == "anomalyaggregator" ]; then
-    PURE_DOCKER=true
+    DOCKER_LOGS=true
   elif [ "$SERVICE" == "anomalydetector" ]; then
-    PURE_DOCKER=true
+    DOCKER_LOGS=true
   elif [ "$SERVICE" == "kafka" ]; then
-    PURE_DOCKER=true
+    DOCKER_LOGS=true
   elif [ "$SERVICE" == "zookeeper" ]; then
-    PURE_DOCKER=true
+    DOCKER_LOGS=true
   else
     LOG=/var/log/$SERVICE/current
   fi
 
-  if [ "$ACTION" == "log" ] && [ "$PURE_DOCKER" != "true" ]; then
+  if [ "$ACTION" == "log" ] && [ "$DOCKER_LOGS" != "true" ]; then
     ACTION="cat $LOG"
-  elif [ "$ACTION" == "tail" ] && [ "$PURE_DOCKER" != "true" ]; then
+  elif [ "$ACTION" == "tail" ] && [ "$DOCKER_LOGS" != "true" ]; then
     ACTION="tail -f -n 100 $LOG"
   elif [ "$ACTION" == "jstack" ]; then
     ACTION='jstack `ps aux | grep java | grep -v grep | awk '"'"'{ print $2; }'"'"'`'
