@@ -33,14 +33,16 @@ DEPRECATED_SERVICES_REV=$(reverse $DEPRECATED_SERVICES)
 
 function stop {
     SERVICE=$1
+    TIMEOUT=""
 
     if [[ "$COOPERATIVE_SERVICES" == *"$SERVICE"* ]]; then
         echo "Stopping $SERVICE with timeout of 60s";
-        docker stop --time 60 coscale_$SERVICE || echo "(Container not running)";
+        TIMEOUT="--time 60"
     else
         echo "Stopping $SERVICE with default timeout";
-        docker stop coscale_$SERVICE || echo "(Container not running)";
     fi
+
+    /usr/bin/time -f "\tStopping $SERVICE took %e s" docker stop $TIMEOUT coscale_$SERVICE || echo "(Container not running)";
 
     docker rm coscale_$SERVICE || echo "(Container not present)"
 }
