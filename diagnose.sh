@@ -1,5 +1,6 @@
 #!/bin/bash
 
+
 # Change working directory
 cd `dirname $0`
 
@@ -17,21 +18,24 @@ function usage {
     echo "    -q                quiet mode"
     echo ""
     echo "Actions"
-    echo "    system            create a sytem diagnostics package (system.tgz)"
-    echo "    check-services    check whether all services are running"
     echo "    test-https        test whether the HTTPS certificates are properly configured"
     echo "    test-email [recipient-email]"
     echo "                      test sending an email with the provided configuration"
+    echo ""
+    echo "    system            create a sytem diagnostics package (system.tgz)"
+    echo "    check-services    check whether all services are running"
+    echo "    list-services     shows the list of configured services"
     echo "    inspect-service [service]"
     echo "                      create a diagnostics package for a service (service.tgz)"
-    echo "    htop              execute htop"
     echo "    log-dump [hours]  create a log dump for the last x hours for all services (logs.tgz)"
+    echo ""
     echo "    backup            create a PostgreSQL backup (backup.tgz)"
     echo ""
     echo "    start-logger      start a diagnostics container that uploads the logs once every hour"
     echo "    stop-logger       stop the logger diagnostics container"
     echo ""
     echo "    clean-images      remove unused CoScale images from Docker"
+    echo "    htop              execute htop"
     echo "    get-certs [host:port]"
     echo "                      get SSL certificates for service running on host:port"
     exit 0
@@ -172,6 +176,12 @@ function check_services {
 
     upload $FILENAME
     exit $DOWN
+}
+
+function list_services {
+    echo "DATA_SERVICES=$DATA_SERVICES"
+    echo "COSCALE_SERVICES=$COSCALE_SERVICES"
+    echo "DEPRECATED_SERVICES=$DEPRECATED_SERVICES"
 }
 
 function test_https {
@@ -383,6 +393,8 @@ if [ "$ACTION" == "system" ]; then
     system
 elif [ "$ACTION" == "check-services" ]; then
     check_services
+elif [ "$ACTION" == "list-services" ]; then
+    list_services
 elif [ "$ACTION" == "test-https" ]; then
     test_https
 elif [ "$ACTION" == "test-email" ]; then
