@@ -1,1 +1,1 @@
-./connect.sh kafka kafka-topics --zookeeper kafka3:2181 --list
+./connect.sh kafka kafka-topics --zookeeper zookeeper:32181 --list
