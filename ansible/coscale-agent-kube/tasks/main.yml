@@ -67,4 +67,4 @@
   template: src=kube.yml dest=/tmp/coscale.yml
 
 - name: Start coscale agent
-  shell: KUBECONFIG=~cs/admin.conf kubectl apply -f /tmp/coscale.yml
+  shell: kubectl apply -f /tmp/coscale.yml
