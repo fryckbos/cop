@@ -1,7 +1,11 @@
 #!/bin/bash -e
 
+SEQ=$2
+
 source conf.sh
 source services.sh
+source host.conf
+
 
 export DNS_SWITCHES=""
 
@@ -22,15 +26,17 @@ fi
 
 function run {
     SERVICE=$1
-    IMAGE_VERSION=$2
+    SEQ=$2
+    IMAGE_VERSION=$3
+
+    HOSTNAME=${SERVICE}${SEQ}
+    IP=$(cat ipslist.conf | grep "^${HOSTNAME}=" | cut -d'=' -f2)
+    echo "Starting [${HOSTNAME}] with IP [${IP}]"
 
     if [ -e links/$SERVICE ]; then
         LINKS=`cat links/$SERVICE`
         if [ "$SERVICE" = 'datastore' ] && [ "$USE_EXTERNAL_CASSANDRA" = true ]; then
             LINKS=$(echo $LINKS | sed 's/--link coscale_cassandra:cassandra//g')
-        fi
-        if [ "$COSCALE_STREAMING_ENABLED" != true ]; then
-            LINKS=$(echo $LINKS | sed 's/--link coscale_kafka:kafka//g')
         fi
     else
         LINKS=""
@@ -53,37 +59,62 @@ function run {
       done
     fi
 
-    if [ -e misc/$SERVICE ]; then
-        MISC=`cat misc/$SERVICE`
-    else
-        MISC=""
+    HOSTNAME=${SERVICE}${SEQ}
+
+    #CUSTOM ACTIONS FOR SERVICE
+    if [ -f service-settings/${SERVICE}.conf ]; then
+      echo "Custom config for service [${SERVICE}]"
+      source service-settings/${SERVICE}.conf
     fi
 
-    ENV_VARS_CONF=`for VAR in $(cat conf.sh | grep '^export' | grep -v REGISTRY | awk '{ print $2; }' | awk -F= '{ print $1; }'); do echo '-e '${VAR}'='${!VAR}' '; done`
+    #CUSTOM ACTIONS FOR CONTAINER
+    if [ -f service-settings/${HOSTNAME}.conf ]; then
+      echo "Custom config for hostname [${HOSTNAME}]"
+      source service-settings/${HOSTNAME}.conf
+    fi
 
     echo "Starting $SERVICE:$IMAGE_VERSION"
     docker run -d \
-        $LINKS $EXPOSED $VOLUMES $DNS_SWITCHES $MISC $ENV_VARS_CONF \
+        --name coscale_${HOSTNAME} \
+        --net cs-int \
+        --ip ${IP} \
+        --dns=${DNS1} \
+        --dns-search=${ENVID}.coscale.com \
+        --hostname=${HOSTNAME} \
+        $LINKS $EXPOSED $VOLUMES $DNS_SWITCHES $EXTRA_RUN_PARAMS \
+        -e "API_URL=$API_URL" \
+        -e "API_SUPER_USER=$API_SUPER_USER" \
+        -e "API_SUPER_PASSWD=$API_SUPER_PASSWD" \
+        -e "APP_URL=$APP_URL" \
+        -e "MAIL_SERVER=$MAIL_SERVER" \
+        -e "MAIL_PORT=$MAIL_PORT" \
+        -e "MAIL_SSL=$MAIL_SSL" \
+        -e "MAIL_TLS=$MAIL_TLS" \
+        -e "MAIL_AUTH=$MAIL_AUTH" \
+        -e "MAIL_USERNAME=$MAIL_USERNAME" \
+        -e "MAIL_PASSWORD=$MAIL_PASSWORD" \
+        -e "FROM_EMAIL=$FROM_EMAIL" \
+        -e "SUPPORT_EMAIL=$SUPPORT_EMAIL" \
+        -e "RUM_URL=$RUM_URL" \
+        -e "ENABLE_HTTPS=$ENABLE_HTTPS" \
+        -e "ANOMALY_EMAIL=$ANOMALY_EMAIL" \
         -e "COSCALE_VERSION=$IMAGE_VERSION" \
-        --restart on-failure \
-        --name coscale_$SERVICE coscale/$SERVICE:$IMAGE_VERSION
+        -e "CASSANDRA_CLEANER_SLACK=$CASSANDRA_CLEANER_SLACK" \
+        -e "USE_EXTERNAL_CASSANDRA=$USE_EXTERNAL_CASSANDRA" \
+        -e "EXTERNAL_CASSANDRA_ENDPOINTS=$EXTERNAL_CASSANDRA_ENDPOINTS" \
+        -e "DATASTORE_THREADS=$DATASTORE_THREADS" \
+        -e "MEMORY_PROFILE=$MEMORY_PROFILE" \
+        coscale/$SERVICE:$IMAGE_VERSION
+
+  ./custom-updatens.sh ${HOSTNAME}.${ENVID}.coscale.com ${IP}
+
+
 }
 
-# Run the data services
-for SERVICE in $DATA_SERVICES; do
-    if [ "$NAME" == "all" ] || [ "$NAME" == "data" ] || [ "$NAME" == "$SERVICE" ]; then
-        run $SERVICE $VERSION
-    fi
-done
 
-if [ "$NAME" == "all" ]; then
-    echo "Sleeping 30 seconds to bring the data services up."
-    sleep 30
-fi
 
-# Run the coscale services
-for SERVICE in $COSCALE_SERVICES $LB_SERVICE; do
-    if [ "$NAME" == "all" ] || [ "$NAME" == "coscale" ] || [ "$NAME" == "$SERVICE" ]; then
-        run $SERVICE $VERSION
-    fi
-done
+SERVICE=${NAME}
+
+run $SERVICE $SEQ $VERSION
+
+
