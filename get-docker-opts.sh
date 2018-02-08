@@ -1,7 +1,13 @@
 #!/bin/bash -e
 
-if [ -e get-docker-opts.override ]; then
-    exec get-docker-opts.override $*
+DEFAULT=0
+if [ "$1" = "--default" ]; then
+    shift
+    DEFAULT=1
+fi
+
+if [[ $DEFAULT = 0 ]] && [[ -f get-docker-opts.override ]]; then
+    exec ./get-docker-opts.override $*
 else
     SERVICE=$1
 

@@ -1,6 +1,12 @@
 #!/bin/bash -e
 
-if [ -e services.override ]; then
+DEFAULT=0
+if [ "$1" = "--default" ]; then
+    shift
+    DEFAULT=1
+fi
+
+if [[ $DEFAULT = 0 ]] && [[ -f services.override ]]; then
     source services.override
 
     if [ "$COSCALE_SERVICES" == "" ]; then
