@@ -6,7 +6,7 @@ if [ "$1" = "--default" ]; then
     DEFAULT=1
 fi
 
-if [[ $DEFAULT = 0 ]] && [[ -f get-docker-opts.override ]]; then
+if [ $DEFAULT == 0 ] && [ -f get-docker-opts.override ]; then
     exec ./get-docker-opts.override $*
 else
     SERVICE=$1
