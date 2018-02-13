@@ -56,14 +56,12 @@ else
   fi
 fi
 
-
-
-if [ "$SERVICE" == "postgresql" ] && [ "$1" == "migrate" ]; then
-  cat $2 | docker exec -i coscale_$SERVICE /bin/bash -c "export TERM=xterm && migrate"
+if [ "$SERVICE" == "postgresql" ] && [ "$1" == "psql" ]; then
+  docker exec -it coscale_$SERVICE /bin/bash -c "PGPASSWORD=coscale psql -h localhost -U coscale -d app"
 elif [ "$ACTION" == "log" ]; then
-    docker logs coscale_$SERVICE
+  docker logs coscale_$SERVICE
 elif [ "$ACTION" == "tail" ]; then
-    docker logs -f --tail 100 coscale_$SERVICE
+  docker logs -f --tail 100 coscale_$SERVICE
 else
   docker exec -it coscale_$SERVICE /bin/bash -c "export TERM=xterm && $ACTION"
 fi
