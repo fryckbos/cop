@@ -46,7 +46,7 @@ if [ "$NAME" == "base" ]; then
 fi
 
 function get_image {
-    SERVICE=$1
+    SERVICE=$(echo $1 | grep -o -e '^[^0-9]*')
     IMAGE_VERSION=$2
     echo coscale/$SERVICE:$IMAGE_VERSION
 }
