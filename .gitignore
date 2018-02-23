@@ -2,6 +2,6 @@
 /services.override
 /get-docker-opts.override
 /data-cluster/conf.sh
-/data/**
-/debug/**
+/data
+/debug
 /.project
