@@ -3,7 +3,7 @@
 if [ $# -lt 1 ]; then
     echo "Usage: `basename $0` node-id {service}" 1>&2
     echo "       node-id: index of this node in the NODES array in conf.sh (starts from 1)"
-    echo "       service: the service to setup (all, cassandra, streaming, zookeeper, kafka, streamingroller, anomalydetector, streamingtriggermatcher, anomalydetectorfeeder, anomalyaggregator). Default: all"
+    echo "       service: the service to setup (all, cassandra, elasticsearch, streaming, zookeeper, kafka, streamingroller, anomalydetector, streamingtriggermatcher, anomalydetectorfeeder, anomalyaggregator). Default: all"
     exit 255
 fi
 
@@ -55,6 +55,21 @@ if [[ "$SERVICE" == "all" ]] || [[ "$SERVICE" == "cassandra" ]]; then
             --restart unless-stopped \
             --name coscale_cassandra_node $REGISTRY/coscale/cassandra:$VERSION
     fi
+fi
+
+if [[ "$SERVICE" == "all" ]] || [[ "$SERVICE" == "elasticsearch" ]]; then
+    # Setup Elasticsearch
+    NODE="${NODES[$((INDEX-1))]}"
+    echo "Setting up elasticsearch node $INDEX : $NODE"
+
+    docker run -d \
+        -e ELASTICSEARCH_NODE_NAME=$NODE \
+        -e ELASTICSEARCH_NODES="$(join_strings "" "," ${NODES[@]})" \
+        -e ELASTICSEARCH_REPLICATION_FACTOR=${REPLICATION_FACTOR} \
+        -v `pwd`/../data/elasticsearch:/var/lib/elasticsearch:Z \
+        --net=host \
+        --restart unless-stopped \
+        --name coscale_elasticsearch $REGISTRY/coscale/elasticsearch:$VERSION
 fi
 
 if [[ "$SERVICE" == "all" ]] || [[ "$SERVICE" == "streaming" ]] || [[ "$SERVICE" == "zookeeper" ]]; then
