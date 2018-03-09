@@ -13,7 +13,7 @@ section "Updating cop git repo"
 git pull
 
 section "Setting new version in conf.sh"
-sed -i "s|VERSION=.*|VERSION=$VERSION|" conf.sh
+sed -i.bak "s|VERSION=.*|VERSION=$VERSION|" conf.sh
 echo "Set to version $VERSION"
 
 section "Pulling docker images"
