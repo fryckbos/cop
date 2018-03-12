@@ -1,7 +1,7 @@
 #!/bin/bash -e
 
 VERSION=$1
-SERVICES=${2:-coscale}
+SERVICES=${2:-all}
 
 function section {
     echo
