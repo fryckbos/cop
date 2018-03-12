@@ -49,7 +49,7 @@ function stop {
 for SERVICE in $DEPRECATED_SERVICES_REV; do
     if [ "$NAME" == "all" ] || [ "$NAME" == "coscale" ] || [ "$NAME" == "data" ]; then
         # Don't bother when service is not running 
-        if [ "$(docker ps -a | grep coscale_$SERVICE)" ]; then
+        if [ "$(docker ps -a | grep coscale_$SERVICE$)" ]; then
             echo "Service $SERVICE is deprecated, stopping it..."
             stop $SERVICE
         fi
