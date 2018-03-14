@@ -195,9 +195,10 @@ function check_services {
 }
 
 function list_services {
-    info "DATA_SERVICES=$DATA_SERVICES"
-    info "COSCALE_SERVICES=$COSCALE_SERVICES"
-    info "DEPRECATED_SERVICES=$DEPRECATED_SERVICES"
+    info "export DATA_SERVICES=\"$DATA_SERVICES\""
+    info "export LB_SERVICE=\"$LB_SERVICE\""
+    info "export COSCALE_SERVICES=\"$COSCALE_SERVICES\""
+    info "export DEPRECATED_SERVICES=\"$DEPRECATED_SERVICES\""
 }
 
 function test_https {
