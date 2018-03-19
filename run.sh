@@ -34,18 +34,12 @@ function run {
     ENV_VARS_CONF=`for VAR in $(cat conf.sh | grep '^export' | grep -v REGISTRY | awk '{ print $2; }' | awk -F= '{ print $1; }'); do echo '-e '${VAR}'='${!VAR}' '; done`
 
     echo "Starting $SERVICE:$IMAGE_VERSION $SEQ"
-
-    # Don't bother when service is already running
-    if [ "$(docker ps -a | grep coscale_$SERVICE$SEQ$)" ]; then
-      echo "The service [${SERVICE}${SEQ}] is already running"
-    else
-      docker run -d \
+    docker run -d \
         $(./get-docker-opts.sh $SERVICE $SEQ) $ENV_VARS_CONF \
         -e "COSCALE_VERSION=$IMAGE_VERSION" \
         --restart on-failure \
         --hostname=coscale_$SERVICE$SEQ \
         --name coscale_$SERVICE$SEQ coscale/$SERVICE:$IMAGE_VERSION
-    fi
 }
 
 # Run the data services
@@ -64,7 +58,7 @@ fi
 
 # Run the coscale services
 for SERVICE in $COSCALE_SERVICES $LB_SERVICE; do
-    if [ "$NAME" == "all" ] || [ "$NAME" == "coscale" ] || [ $(get_service "$NAME") == $(get_service "$SERVICE") ]; then
+    if [ "$NAME" == "all" ] || [ "$NAME" == "coscale" ] || [ "$NAME" == "$SERVICE" ]; then
         run $(get_service $SERVICE) $VERSION $(get_seq $SERVICE)
         STARTED=1
     fi
