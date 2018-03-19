@@ -42,15 +42,15 @@ function stop {
     SERVICE=$1
     TIMEOUT=""
 
-    if [[ "$COOPERATIVE_SERVICES" == *"$SERVICE"* ]]; then
+    if [[ "$COOPERATIVE_SERVICES" == *"$(get_service ${SERVICE})"* ]]; then
         echo "Stopping $SERVICE with timeout of 60s";
-        TIMEOUT="--time 60"
+        TIMEOUT="--time 180"
     else
         echo "Stopping $SERVICE with default timeout";
     fi
 
-    docker stop $TIMEOUT coscale_$SERVICE || echo "(Container not running)"
-    docker rm coscale_$SERVICE || echo "(Container not present)"
+    echo docker stop $TIMEOUT coscale_$SERVICE || echo "(Container not running)"
+    echo docker rm coscale_$SERVICE || echo "(Container not present)"
 }
 
 # Stop the deprecated services
@@ -66,7 +66,7 @@ done
 
 # Stop the coscale services
 for SERVICE in $LB_SERVICE $COSCALE_SERVICES_REV; do
-    if [ "$NAME" == "all" ] || [ "$NAME" == "coscale" ] || [ $(get_service "$NAME") == $(get_service "$SERVICE") ]; then
+    if [ "$NAME" == "all" ] || [ "$NAME" == "coscale" ] || [ "$NAME" == $(get_service "$SERVICE") ] || [ "$NAME" == "$SERVICE" ]; then
         stop $SERVICE
     fi
 done

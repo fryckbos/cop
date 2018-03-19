@@ -39,7 +39,7 @@ function run {
     if [ "$(docker ps -a | grep coscale_$SERVICE$SEQ$)" ]; then
       echo "The service [${SERVICE}${SEQ}] is already running"
     else
-      docker run -d \
+      echo docker run -d \
         $(./get-docker-opts.sh $SERVICE $SEQ) $ENV_VARS_CONF \
         -e "COSCALE_VERSION=$IMAGE_VERSION" \
         --restart on-failure \
@@ -51,7 +51,7 @@ function run {
 # Run the data services
 STARTED=0
 for SERVICE in $DATA_SERVICES; do
-    if [ "$NAME" == "all" ] || [ "$NAME" == "data" ] || [ "$NAME" == "$SERVICE" ]; then
+    if [ "$NAME" == "all" ] || [ "$NAME" == "data" ] || [ "$NAME" == $(get_service "$SERVICE") ] || [ "$NAME" == "$SERVICE" ]; then
         run $(get_service $SERVICE) $VERSION $(get_seq $SERVICE)
         STARTED=1
     fi
@@ -64,7 +64,7 @@ fi
 
 # Run the coscale services
 for SERVICE in $COSCALE_SERVICES $LB_SERVICE; do
-    if [ "$NAME" == "all" ] || [ "$NAME" == "coscale" ] || [ $(get_service "$NAME") == $(get_service "$SERVICE") ]; then
+    if [ "$NAME" == "all" ] || [ "$NAME" == "coscale" ] || [ "$NAME" == $(get_service "$SERVICE") ] || [ "$NAME" == "$SERVICE" ]; then
         run $(get_service $SERVICE) $VERSION $(get_seq $SERVICE)
         STARTED=1
     fi
