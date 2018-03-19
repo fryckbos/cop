@@ -39,7 +39,7 @@ function run {
     if [ "$(docker ps -a | grep coscale_$SERVICE$SEQ$)" ]; then
       echo "The service [${SERVICE}${SEQ}] is already running"
     else
-      echo docker run -d \
+      docker run -d \
         $(./get-docker-opts.sh $SERVICE $SEQ) $ENV_VARS_CONF \
         -e "COSCALE_VERSION=$IMAGE_VERSION" \
         --restart on-failure \

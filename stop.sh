@@ -49,8 +49,8 @@ function stop {
         echo "Stopping $SERVICE with default timeout";
     fi
 
-    echo docker stop $TIMEOUT coscale_$SERVICE || echo "(Container not running)"
-    echo docker rm coscale_$SERVICE || echo "(Container not present)"
+    docker stop $TIMEOUT coscale_$SERVICE || echo "(Container not running)"
+    docker rm coscale_$SERVICE || echo "(Container not present)"
 }
 
 # Stop the deprecated services
