@@ -2,7 +2,7 @@
 
 source ../conf.sh
 
-# Replication factor for Cassandra and Kafka
+# Replication factor for Cassandra, Elasticsearch and Kafka
 export REPLICATION_FACTOR=2
 
 # Array of external addresses (dns names or ips) of the nodes in the cluster, eg. (node1.coscale.com node2.coscale.com node3.coscale.com)

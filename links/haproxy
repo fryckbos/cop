@@ -1,1 +1,4 @@
---link coscale_api:api --link coscale_app:app --link coscale_rum:rum --link coscale_rumdatareceiver:rumdatareceiver
+api
+app
+rum
+rumdatareceiver

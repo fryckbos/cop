@@ -1,1 +1,4 @@
---link coscale_cassandra:cassandra --link coscale_rabbitmq:rabbitmq --link coscale_memcached:memcached --link coscale_kafka:kafka
+cassandra
+rabbitmq
+memcached
+kafka

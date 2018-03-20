@@ -21,6 +21,7 @@ function usage {
     echo "    test-email [recipient-email]"
     echo "                      test sending an email with the provided configuration"
     echo ""
+    echo "    version           print the currently running CoScale version"
     echo "    system            create a sytem diagnostics package (system.tgz)"
     echo "    check-services    check whether all services are running"
     echo "    list-services     shows the list of configured services"
@@ -68,6 +69,21 @@ function upload {
             rm $1
         fi
         info "Done uploading"
+    fi
+}
+
+function version {
+    IMAGES=$(for SERVICE in $COSCALE_SERVICES; do docker inspect --format='{{.Config.Image}}' coscale_${SERVICE}; done)
+    VERSION=$(echo "$IMAGES" | awk -F: '{ print $2; }' | uniq)
+
+    if [ $(echo "$VERSION" | wc -l) == "1" ]; then
+        info "$VERSION"
+        exit 0
+    else
+        info "Not all components are on the same version"
+        info
+        info "$IMAGES"
+        exit 1
     fi
 }
 
@@ -179,9 +195,10 @@ function check_services {
 }
 
 function list_services {
-    info "DATA_SERVICES=$DATA_SERVICES"
-    info "COSCALE_SERVICES=$COSCALE_SERVICES"
-    info "DEPRECATED_SERVICES=$DEPRECATED_SERVICES"
+    info "export DATA_SERVICES=\"$DATA_SERVICES\""
+    info "export LB_SERVICE=\"$LB_SERVICE\""
+    info "export COSCALE_SERVICES=\"$COSCALE_SERVICES\""
+    info "export DEPRECATED_SERVICES=\"$DEPRECATED_SERVICES\""
 }
 
 function test_https {
@@ -444,7 +461,9 @@ shift $((OPTIND-1))
 # Execute the requested action
 ACTION=${1:-help}
 
-if [ "$ACTION" == "system" ]; then
+if [ "$ACTION" == "version" ]; then
+    version
+elif [ "$ACTION" == "system" ]; then
     system
 elif [ "$ACTION" == "check-services" ]; then
     check_services

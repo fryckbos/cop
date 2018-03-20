@@ -3,8 +3,6 @@
 source conf.sh
 source services.sh
 
-export DNS_SWITCHES=""
-
 if [ "$1" == "--version" ]; then
     VERSION="$2"
     shift #move command line arguments to the left
@@ -20,63 +18,40 @@ if [ "$NAME" == "--help" ]; then
     exit 0
 fi
 
+function get_service {
+    echo $1 | grep -o -e '^[^0-9]*'
+}
+
+function get_seq {
+    echo $1 | grep -o -e '[0-9]*$'
+}
+
 function run {
     SERVICE=$1
     IMAGE_VERSION=$2
-
-    if [ -e links/$SERVICE ]; then
-        LINKS=`cat links/$SERVICE`
-        if [ "$SERVICE" = 'datastore' ] && [ "$USE_EXTERNAL_CASSANDRA" = true ]; then
-            LINKS=$(echo $LINKS | sed 's/--link coscale_cassandra:cassandra//g')
-        fi
-        if [ "$COSCALE_STREAMING_ENABLED" != true ]; then
-            LINKS=$(echo $LINKS | sed 's/--link coscale_kafka:kafka//g')
-        fi
-    else
-        LINKS=""
-    fi
-
-    if [ -e expose/$SERVICE ]; then
-        EXPOSED=`cat expose/$SERVICE`
-    else
-        EXPOSED=""
-    fi
-
-    VOLUMEFILE=volumes/$SERVICE
-    VOLUMES=""
-    if [ -e $VOLUMEFILE ]; then
-      for ENTRY in $(<$VOLUMEFILE); do
-        if [[ "$ENTRY" != "/"* ]]; then
-            ENTRY=`pwd`/$ENTRY
-        fi
-        VOLUMES="${VOLUMES}-v ${ENTRY}:Z "
-      done
-    fi
-
-    if [ -e misc/$SERVICE ]; then
-        MISC=`cat misc/$SERVICE`
-    else
-        MISC=""
-    fi
+    SEQ=$3
 
     ENV_VARS_CONF=`for VAR in $(cat conf.sh | grep '^export' | grep -v REGISTRY | awk '{ print $2; }' | awk -F= '{ print $1; }'); do echo '-e '${VAR}'='${!VAR}' '; done`
 
-    echo "Starting $SERVICE:$IMAGE_VERSION"
+    echo "Starting $SERVICE:$IMAGE_VERSION $SEQ"
     docker run -d \
-        $LINKS $EXPOSED $VOLUMES $DNS_SWITCHES $MISC $ENV_VARS_CONF \
+        $(./get-docker-opts.sh $SERVICE $SEQ) $ENV_VARS_CONF \
         -e "COSCALE_VERSION=$IMAGE_VERSION" \
         --restart on-failure \
-        --name coscale_$SERVICE coscale/$SERVICE:$IMAGE_VERSION
+        --hostname=coscale_$SERVICE$SEQ \
+        --name coscale_$SERVICE$SEQ coscale/$SERVICE:$IMAGE_VERSION
 }
 
 # Run the data services
+STARTED=0
 for SERVICE in $DATA_SERVICES; do
     if [ "$NAME" == "all" ] || [ "$NAME" == "data" ] || [ "$NAME" == "$SERVICE" ]; then
-        run $SERVICE $VERSION
+        run $(get_service $SERVICE) $VERSION $(get_seq $SERVICE)
+        STARTED=1
     fi
 done
 
-if [ "$NAME" == "all" ]; then
+if [ "$STARTED" == "1" ]; then
     echo "Sleeping 30 seconds to bring the data services up."
     sleep 30
 fi
@@ -84,6 +59,13 @@ fi
 # Run the coscale services
 for SERVICE in $COSCALE_SERVICES $LB_SERVICE; do
     if [ "$NAME" == "all" ] || [ "$NAME" == "coscale" ] || [ "$NAME" == "$SERVICE" ]; then
-        run $SERVICE $VERSION
+        run $(get_service $SERVICE) $VERSION $(get_seq $SERVICE)
+        STARTED=1
     fi
 done
+
+# Raise an error if no containers were started
+if [ "$STARTED" == "0" ]; then
+    echo "Error: no containers started."
+    exit 1
+fi
