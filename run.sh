@@ -37,7 +37,7 @@ function run {
 
     # Don't bother when service is already running
     if [ "$(docker ps -a | grep coscale_$SERVICE$SEQ$)" ]; then
-      echo "The service [${SERVICE}${SEQ}] is already running"
+      echo "The service ${SERVICE}${SEQ} already exists."
     else
       docker run -d \
         $(./get-docker-opts.sh $SERVICE $SEQ) $ENV_VARS_CONF \
