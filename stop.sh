@@ -43,7 +43,7 @@ function stop {
     TIMEOUT=""
 
     if [[ "$COOPERATIVE_SERVICES" == *"$(get_service ${SERVICE})"* ]]; then
-        echo "Stopping $SERVICE with timeout of 60s";
+        echo "Stopping $SERVICE with timeout of 180s";
         TIMEOUT="--time 180"
     else
         echo "Stopping $SERVICE with default timeout";
