@@ -5,6 +5,7 @@ if [ "$#" -lt 1 ]; then
   echo "     bash : starts an interactive bash console (default)"
   echo "     log : get the full service log"
   echo "     tail : get a tailf of the service log"
+  echo "     restart : restart the process in the container"
   echo "     jstack : create a jstack of the Java process in the container"
   echo "     <cmd> : execute any command directly"
 fi
@@ -54,6 +55,19 @@ else
     ACTION="tail -f -n 100 $LOG"
   elif [ "$ACTION" == "jstack" ]; then
     ACTION='jstack `ps aux | grep java | grep -v grep | awk '"'"'{ print $2; }'"'"'`'
+  elif [ "$ACTION" == "restart" ]; then
+    ACTION="sv restart $SERVICE"
+    if [ "$SERVICE" == "app" ] || [ "$SERVICE" == "api" ]; then
+      ACTION="rm /opt/coscale/$SERVICE/RUNNING_PID && $ACTION"
+    elif [ "$SERVICE" == "rum" ]; then
+      ACTION="/etc/init.d/nginx restart"
+    elif [ "$SERVICE" == "rabbitmq" ]; then
+      ACTION="/etc/init.d/rabbitmq-server restart"
+    elif [ "$SERVICE" == "cassandra" ] || [ "$SERVICE" == "memcached" ] || [ "$SERVICE" == "postgresql" ] || [ "$SERVICE" == "elasticsearch" ]; then
+      ACTION="/etc/init.d/$SERVICE restart"
+    elif [ "$SERVICE" == "haproxy" ]; then
+      ACTION="killall haproxy; /etc/init.d/haproxy start"
+    fi
   fi
 fi
 
