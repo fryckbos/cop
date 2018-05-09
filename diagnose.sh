@@ -35,8 +35,10 @@ function usage {
     echo ""
     echo "    htop              execute htop"
     echo "    clean-images      remove unused CoScale images from Docker"
+    echo ""
     echo "    get-certs [host:port]"
     echo "                      get SSL certificates for service running on host:port"
+    echo "    init-ext-psql     initialise an external PostgreSQL database"
     echo ""
     echo "    kafka <action>    get more information about the kafka state"
     exit 0
@@ -385,6 +387,18 @@ function get_certs {
     docker run --rm -it coscale/diag /opt/coscale/get-certs.sh $HOST
 }
 
+function init_ext_psql {
+    info "Initialising external PostgreSQL database"
+    docker run \
+        -e DB_DEFAULT_URL="$DB_DEFAULT_URL" \
+        -e DB_DEFAULT_USERNAME="$DB_DEFAULT_USERNAME" \
+        -e DB_DEFAULT_PASSWORD="$DB_DEFAULT_PASSWORD" \
+        -e DB_GLOBAL_URL="$DB_GLOBAL_URL" \
+        -e DB_GLOBAL_USERNAME="$DB_GLOBAL_USERNAME" \
+        -e DB_GLOBAL_PASSWORD="$DB_GLOBAL_PASSWORD" \
+        -it coscale/postgresql-init:$VERSION
+}
+
 function kafka {
     ACTION=${1:-help}
     shift
@@ -493,6 +507,8 @@ elif [ "$ACTION" == "clean-images" ]; then
 elif [ "$ACTION" == "get-certs" ]; then
     HOST=$2
     get_certs $HOST
+elif [ "$ACTION" == "init-ext-psql" ]; then
+    init_ext_psql
 elif [ "$ACTION" == "kafka" ]; then
     shift
     kafka $@
