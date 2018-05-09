@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: triggermatcher
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: triggermatcher
+  template:
+    metadata:
+      labels:
+        app: triggermatcher
+    spec:
+      imagePullSecrets:
+      - name: coscale-registry
+      containers:
+      - name: triggermatcher
+        image: ${REGISTRY}/coscale/triggermatcher:${VERSION}

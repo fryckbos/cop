@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: haproxy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: haproxy
+  template:
+    metadata:
+      labels:
+        app: haproxy
+    spec:
+      imagePullSecrets:
+      - name: coscale-registry
+      containers:
+      - name: haproxy
+        image: ${REGISTRY}/coscale/haproxy:${VERSION}
+        ports:
+        - containerPort: 80
+        - containerPort: 443

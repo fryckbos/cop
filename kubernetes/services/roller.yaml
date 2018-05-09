@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: roller
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: roller
+  template:
+    metadata:
+      labels:
+        app: roller
+    spec:
+      imagePullSecrets:
+      - name: coscale-registry
+      containers:
+      - name: roller
+        image: ${REGISTRY}/coscale/roller:${VERSION}

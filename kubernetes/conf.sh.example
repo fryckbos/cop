@@ -1,0 +1,6 @@
+#!/bin/bash
+
+source ../conf.sh
+
+# Provide the namespace for the CoScale containers
+export NAMESPACE=

@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app
+  template:
+    metadata:
+      labels:
+        app: app
+    spec:
+      imagePullSecrets:
+      - name: coscale-registry
+      containers:
+      - name: app
+        image: ${REGISTRY}/coscale/app:${VERSION}
+        ports:
+        - containerPort: 80

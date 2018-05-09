@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: anomalydetectorservice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: anomalydetectorservice
+  template:
+    metadata:
+      labels:
+        app: anomalydetectorservice
+    spec:
+      imagePullSecrets:
+      - name: coscale-registry
+      containers:
+      - name: anomalydetectorservice
+        image: ${REGISTRY}/coscale/anomalydetectorservice:${VERSION}

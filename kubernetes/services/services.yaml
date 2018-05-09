@@ -1,0 +1,97 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: api
+  labels:
+    app: api
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+  selector:
+    app: api
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app
+  labels:
+    app: app
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+  selector:
+    app: app
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: memcached
+  labels:
+    app: memcached
+spec:
+  ports:
+  - port: 11211
+    protocol: TCP
+  selector:
+    app: memcached
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq
+  labels:
+    app: rabbitmq
+spec:
+  ports:
+  - port: 5672
+    protocol: TCP
+  selector:
+    app: rabbitmq
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rum
+  labels:
+    app: rum
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+  selector:
+    app: rum
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rumdatareceiver
+  labels:
+    app: rumdatareceiver
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+  selector:
+    app: rumdatareceiver
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: haproxy
+  labels:
+    app: haproxy
+spec:
+  type: NodePort
+  selector:
+    app: haproxy
+  ports:
+  - name: http
+    port: 80
+    nodePort: 32080
+    protocol: TCP
+  - name: https
+    port: 443
+    nodePort: 32443
+    protocol: TCP
