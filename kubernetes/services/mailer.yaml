@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mailer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mailer
+  template:
+    metadata:
+      labels:
+        app: mailer
+    spec:
+      imagePullSecrets:
+      - name: coscale-registry
+      containers:
+      - name: mailer
+        image: ${REGISTRY}/coscale/mailer:${VERSION}

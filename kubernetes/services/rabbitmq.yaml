@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rabbitmq
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rabbitmq
+  template:
+    metadata:
+      labels:
+        app: rabbitmq
+    spec:
+      imagePullSecrets:
+      - name: coscale-registry
+      containers:
+      - name: rabbitmq
+        image: ${REGISTRY}/coscale/rabbitmq:${VERSION}
+        ports:
+        - containerPort: 5672

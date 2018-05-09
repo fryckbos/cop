@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: datastore
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: datastore
+  template:
+    metadata:
+      labels:
+        app: datastore
+    spec:
+      imagePullSecrets:
+      - name: coscale-registry
+      containers:
+      - name: datastore
+        image: ${REGISTRY}/coscale/datastore:${VERSION}

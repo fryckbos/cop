@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rumdatareceiver
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rumdatareceiver
+  template:
+    metadata:
+      labels:
+        app: rumdatareceiver
+    spec:
+      imagePullSecrets:
+      - name: coscale-registry
+      containers:
+      - name: rumdatareceiver
+        image: ${REGISTRY}/coscale/rumdatareceiver:${VERSION}
+        ports:
+        - containerPort: 80
