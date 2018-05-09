@@ -1,13 +1,15 @@
 #!/bin/bash -e
 
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")"; pwd -P)"
+
 DEFAULT=0
 if [ "$1" = "--default" ]; then
     shift
     DEFAULT=1
 fi
 
-if [ $DEFAULT == 0 ] && [ -f services.override ]; then
-    source services.override
+if [ $DEFAULT == 0 ] && [ -f $DIR/services.override ]; then
+    source $DIR/services.override
 
     if [ "$COSCALE_SERVICES" == "" ]; then
         echo "Error in services: if services.override exists, it should set COSCALE_SERVICES."

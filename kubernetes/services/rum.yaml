@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rum
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rum
+  template:
+    metadata:
+      labels:
+        app: rum
+    spec:
+      imagePullSecrets:
+      - name: coscale-registry
+      containers:
+      - name: rum
+        image: ${REGISTRY}/coscale/rum:${VERSION}
+        ports:
+        - containerPort: 80

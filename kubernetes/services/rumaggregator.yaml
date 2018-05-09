@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rumaggregator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rumaggregator
+  template:
+    metadata:
+      labels:
+        app: rumaggregator
+    spec:
+      imagePullSecrets:
+      - name: coscale-registry
+      containers:
+      - name: rumaggregator
+        image: ${REGISTRY}/coscale/rumaggregator:${VERSION}

@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: reporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: reporter
+  template:
+    metadata:
+      labels:
+        app: reporter
+    spec:
+      imagePullSecrets:
+      - name: coscale-registry
+      containers:
+      - name: reporter
+        image: ${REGISTRY}/coscale/reporter:${VERSION}

@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: analysismanager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: analysismanager
+  template:
+    metadata:
+      labels:
+        app: analysismanager
+    spec:
+      imagePullSecrets:
+      - name: coscale-registry
+      containers:
+      - name: analysismanager
+        image: ${REGISTRY}/coscale/analysismanager:${VERSION}

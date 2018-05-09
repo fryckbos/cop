@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: collector
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: collector
+  template:
+    metadata:
+      labels:
+        app: collector
+    spec:
+      imagePullSecrets:
+      - name: coscale-registry
+      containers:
+      - name: collector
+        image: ${REGISTRY}/coscale/collector:${VERSION}
