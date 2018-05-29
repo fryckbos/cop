@@ -256,6 +256,7 @@ function test_https {
     # Check whether a curl works
     CURL_OPTS=""
     if [ -e data/ssl/selfsigned.crt ]; then
+        echo "... Adding selfsigned.crt certifcate for validation ..."
         CURL_OPTS="--cacert /data/ssl/selfsigned.crt"
     fi
 
