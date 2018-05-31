@@ -39,7 +39,7 @@ else
         if [[ "$ENTRY" != "/"* ]]; then
             ENTRY=$(pwd)/$ENTRY
         fi
-        VOLUMES="${VOLUMES}-v ${ENTRY}:Z "
+        VOLUMES="${VOLUMES}-v ${ENTRY}:z "
       done
     fi
 
