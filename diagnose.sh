@@ -17,17 +17,30 @@ function usage {
     echo "    -q                quiet mode"
     echo ""
     echo "Actions"
+    echo "    test-https        test whether the HTTPS certificates are properly configured"
+    echo "    test-email [recipient-email]"
+    echo "                      test sending an email with the provided configuration"
+    echo ""
+    echo "    version           print the currently running CoScale version"
     echo "    system            create a sytem diagnostics package (system.tgz)"
     echo "    check-services    check whether all services are running"
+    echo "    list-services     shows the list of configured services"
     echo "    inspect-service [service]"
     echo "                      create a diagnostics package for a service (service.tgz)"
-    echo "    htop              execute htop"
     echo "    log-dump [hours]  create a log dump for the last x hours for all services (logs.tgz)"
     echo "    backup            create a PostgreSQL backup (backup.tgz)"
     echo ""
     echo "    start-logger      start a diagnostics container that uploads the logs once every hour"
     echo "    stop-logger       stop the logger diagnostics container"
     echo ""
+    echo "    htop              execute htop"
+    echo "    clean-images      remove unused CoScale images from Docker"
+    echo ""
+    echo "    get-certs [host:port]"
+    echo "                      get SSL certificates for service running on host:port"
+    echo "    init-ext-psql     initialise an external PostgreSQL database"
+    echo ""
+    echo "    kafka <action>    get more information about the kafka state"
     exit 0
 }
 
@@ -58,6 +71,21 @@ function upload {
             rm $1
         fi
         info "Done uploading"
+    fi
+}
+
+function version {
+    IMAGES=$(for SERVICE in $COSCALE_SERVICES; do docker inspect --format='{{.Config.Image}}' coscale_${SERVICE}; done)
+    VERSION=$(echo "$IMAGES" | awk -F: '{ print $2; }' | uniq)
+
+    if [ $(echo "$VERSION" | wc -l) == "1" ]; then
+        info "$VERSION"
+        exit 0
+    else
+        info "Not all components are on the same version"
+        info
+        info "$IMAGES"
+        exit 1
     fi
 }
 
@@ -168,6 +196,103 @@ function check_services {
     exit $DOWN
 }
 
+function list_services {
+    info "export DATA_SERVICES=\"$DATA_SERVICES\""
+    info "export LB_SERVICE=\"$LB_SERVICE\""
+    info "export COSCALE_SERVICES=\"$COSCALE_SERVICES\""
+    info "export DEPRECATED_SERVICES=\"$DEPRECATED_SERVICES\""
+}
+
+function test_https {
+    # Check if the environment variable is set and the certificate is present
+    if docker ps | grep coscale_haproxy >/dev/null; then
+        echo "Error: stop haproxy before performing test-https (./stop.sh haproxy)"
+        exit 1
+    fi
+
+    if [ "$ENABLE_HTTPS" != "1" ]; then
+        echo "Error: set ENABLE_HTTPS to 1 in conf.sh"
+        exit 1
+    fi
+
+    if [ ! -e data/ssl/https.pem ]; then
+        echo "Error: HTTPS is enabled but data/ssl/https.pem does not exist"
+        exit 1
+    fi
+
+    if ! grep 'BEGIN CERTIFICATE' data/ssl/https.pem >/dev/null; then
+        echo "Error: could not find BEGIN CERTIFICATE in data/ssl/https.pem"
+        exit 1
+    fi
+
+    if ! grep 'END CERTIFICATE' data/ssl/https.pem >/dev/null; then
+        echo "Error: could not find END CERTIFICATE in data/ssl/https.pem"
+        exit 1
+    fi
+
+    if ! grep 'BEGIN .*PRIVATE KEY' data/ssl/https.pem >/dev/null; then
+        echo "Error: could not find BEGIN PRIVATE KEY in data/ssl/https.pem"
+        exit 1
+    fi
+
+    if ! grep 'END .*PRIVATE KEY' data/ssl/https.pem >/dev/null; then
+        echo "Error: could not find END CERTIFICATE in data/ssl/https.pem"
+        exit 1
+    fi
+
+    # Start a HaProxy container (+ backend) with the HTTPS certificate
+    docker run -d --name coscale_test_https_backend coscale/rum:$VERSION >/dev/null
+
+    docker run -d \
+        -v `pwd`/data/ssl:/data/ssl:Z \
+        -e "ENABLE_HTTPS=$ENABLE_HTTPS" \
+        --link coscale_test_https_backend:api \
+        --link coscale_test_https_backend:app \
+        --link coscale_test_https_backend:rum \
+        --link coscale_test_https_backend:rumdatareceiver \
+        -p 0.0.0.0:443:443 \
+        --name coscale_test_https_haproxy coscale/haproxy:$VERSION >/dev/null
+
+    # Check whether a curl works
+    CURL_OPTS=""
+    if [ -e data/ssl/selfsigned.crt ]; then
+        echo "... Adding selfsigned.crt certifcate for validation ..."
+        CURL_OPTS="--cacert /data/ssl/selfsigned.crt"
+    fi
+
+    docker exec coscale_test_https_haproxy /bin/bash -c "curl $CURL_OPTS $API_URL >/dev/null"
+    CURL_STATUS=$?
+
+    # Stop and remove the containers
+    docker rm -f coscale_test_https_backend coscale_test_https_haproxy >/dev/null
+    echo
+
+    if [ "$CURL_STATUS" == "0" ]; then
+        echo "HTTPS is properly configured !"
+        exit 0
+    else
+        echo "Error: HTTPS is not properly configured. (curl failed with $CURL_STATUS)"
+        exit $CURL_STATUS
+    fi
+}
+
+function test_email {
+    RECIPIENT=$1
+
+    docker run --rm -it \
+        -v `pwd`/data/ssl:/data/ssl:Z \
+        -e "MAIL_SERVER=$MAIL_SERVER" \
+        -e "MAIL_PORT=$MAIL_PORT" \
+        -e "MAIL_SSL=$MAIL_SSL" \
+        -e "MAIL_TLS=$MAIL_TLS" \
+        -e "MAIL_AUTH=$MAIL_AUTH" \
+        -e "MAIL_USERNAME=$MAIL_USERNAME" \
+        -e "MAIL_PASSWORD=$MAIL_PASSWORD" \
+        -e "FROM_EMAIL=$FROM_EMAIL" \
+        --name coscale_test_mailer coscale/mailer:$VERSION \
+        /bin/bash -c "/entrypoint.sh --test $RECIPIENT"
+}
+
 function do_htop {
     if [ "$UPLOAD" == "true" ]; then
         FILENAME=$(get_filename htop html)
@@ -252,6 +377,85 @@ function stop_logger {
     docker rm coscale_${LOGGER_NAME} || echo "(Container not present)"
 }
 
+function clean_images {
+    info "Removing unused CoScale images from Docker"
+    docker images | grep 'coscale/' | grep -v "$VERSION" | grep -v "latest" | awk '{ print $3; }' | xargs -n1 docker rmi -f 2>/dev/null
+    exit 0
+}
+
+function get_certs {
+    HOST=$1
+    info "Getting certificates for $HOST"
+    docker run --rm -it coscale/diag /opt/coscale/get-certs.sh $HOST
+}
+
+function init_ext_psql {
+    info "Initialising external PostgreSQL database"
+    docker run \
+        -e DB_DEFAULT_URL="$DB_DEFAULT_URL" \
+        -e DB_DEFAULT_USERNAME="$DB_DEFAULT_USERNAME" \
+        -e DB_DEFAULT_PASSWORD="$DB_DEFAULT_PASSWORD" \
+        -e DB_GLOBAL_URL="$DB_GLOBAL_URL" \
+        -e DB_GLOBAL_USERNAME="$DB_GLOBAL_USERNAME" \
+        -e DB_GLOBAL_PASSWORD="$DB_GLOBAL_PASSWORD" \
+        -it coscale/postgresql-init:$VERSION
+}
+
+function kafka {
+    ACTION=${1:-help}
+    shift
+
+    if [ "$ACTION" == "list-consumer-groups" ]; then
+        ./connect.sh kafka kafka-consumer-groups --bootstrap-server localhost:9092 --list
+    elif [ "$ACTION" == "describe-consumer-group" ]; then
+        GROUP=$1
+        ./connect.sh kafka kafka-consumer-groups --bootstrap-server localhost:9092 --describe --group $GROUP
+    elif [ "$ACTION" == "consumer-group-seek-to-end" ]; then
+        GROUP=$1
+        ./connect.sh kafka kafka-consumer-groups --bootstrap-server localhost:9092 --reset-offsets --to-latest --execute --all-topics --group $GROUP
+    elif [ "$ACTION" == "list-topics" ]; then
+        ./connect.sh kafka kafka-topics --zookeeper zookeeper:32181 --list
+    elif [ "$ACTION" == "log-topics" ]; then
+        docker run -it --rm --link coscale_kafka:kafka coscale/streamingroller:$VERSION java -cp /opt/coscale/streamingroller/bin/streamingroller-$VERSION-jar-with-dependencies.jar coscale.streamingcore.kafka.LogTopics -h kafka:9092 $@
+    elif [ "$ACTION" == "manage-topics" ]; then
+        docker run -it --rm --link coscale_kafka:kafka coscale/streamingroller:$VERSION java -cp /opt/coscale/streamingroller/bin/streamingroller-$VERSION-jar-with-dependencies.jar coscale.streamingcore.kafka.ManageTopics -h kafka:9092 $@
+    elif [ "$ACTION" == "describe-topic" ]; then
+        TOPIC=$1
+        ./connect.sh kafka kafka-topics --zookeeper zookeeper:32181 --describe --topic $TOPIC
+    elif [ "$ACTION" == "delete-topic" ]; then
+        TOPIC=$1
+        ./connect.sh kafka kafka-topics --zookeeper zookeeper:32181 --delete --topic $TOPIC
+    elif [ "$ACTION" == "changelogsize" ]; then
+        find 'data/kafka/data' -regex '.*changelog.*' -print0 | du --files0-from=- -ch | sort -h
+    else
+        kafka_usage
+    fi
+}
+
+function kafka_usage {
+    echo "$0 [-urtq] kafka <action>"
+    echo ""
+    echo "Flags"
+    echo "    -u                upload the data to CoScale opdebug"
+    echo "    -r                remove file after upload"
+    echo "    -t                use timestamped filenames"
+    echo "    -q                quiet mode"
+    echo ""
+    echo "Kafka actions"
+    echo "    list-consumer-groups                list all kafka consumer groups"
+    echo "    describe-consumer-group [group]     describe a kafka consumer group"
+    echo "    consumer-group-seek-to-end [group]  seek to the end of all partitions on all topics for the specified consumer group"
+    echo ""
+    echo "    list-topics              list all kafka topics" 
+    echo "    log-topics [opts]        view a live stream of messages on a topic"
+    echo "    manage-topics [opts]     create or update configurations of topics"
+    echo "    describe-topic [topic]   describe a kafka topic"
+    echo "    delete-topic [topic]     delete a kafka topic"
+    echo ""
+    echo "    changelogsize            get the total changelog size"
+    exit 0
+}
+
 
 # Parse command line arguments
 UPLOAD=false
@@ -273,10 +477,19 @@ shift $((OPTIND-1))
 # Execute the requested action
 ACTION=${1:-help}
 
-if [ "$ACTION" == "system" ]; then
+if [ "$ACTION" == "version" ]; then
+    version
+elif [ "$ACTION" == "system" ]; then
     system
 elif [ "$ACTION" == "check-services" ]; then
     check_services
+elif [ "$ACTION" == "list-services" ]; then
+    list_services
+elif [ "$ACTION" == "test-https" ]; then
+    test_https
+elif [ "$ACTION" == "test-email" ]; then
+    RECIPIENT=$2
+    test_email $RECIPIENT
 elif [ "$ACTION" == "inspect-service" ]; then
     SERVICE=${2:-all}
     inspect_service $SERVICE
@@ -291,6 +504,16 @@ elif [ "$ACTION" == "start-logger" ]; then
     start_logger
 elif [ "$ACTION" == "stop-logger" ]; then
     stop_logger
+elif [ "$ACTION" == "clean-images" ]; then
+    clean_images
+elif [ "$ACTION" == "get-certs" ]; then
+    HOST=$2
+    get_certs $HOST
+elif [ "$ACTION" == "init-ext-psql" ]; then
+    init_ext_psql
+elif [ "$ACTION" == "kafka" ]; then
+    shift
+    kafka $@
 else
     usage
 fi

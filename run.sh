@@ -3,8 +3,6 @@
 source conf.sh
 source services.sh
 
-export DNS_SWITCHES=""
-
 if [ "$1" == "--version" ]; then
     VERSION="$2"
     shift #move command line arguments to the left
@@ -20,77 +18,60 @@ if [ "$NAME" == "--help" ]; then
     exit 0
 fi
 
+function get_service {
+    echo $1 | grep -o -e '^[^0-9]*'
+}
+
+function get_seq {
+    echo $1 | grep -o -e '[0-9]*$'
+}
+
 function run {
     SERVICE=$1
     IMAGE_VERSION=$2
+    SEQ=$3
 
-    if [ -e links/$SERVICE ]; then
-        LINKS=`cat links/$SERVICE`
-        if [ "$SERVICE" = 'datastore' ] && [ "$USE_EXTERNAL_CASSANDRA" = true ]; then
-            LINKS=$(echo $LINKS | sed 's/--link coscale_cassandra:cassandra//g')
-        fi
+    ENV_VARS_CONF=`for VAR in $(cat conf.sh | grep '^export' | grep -v REGISTRY | awk '{ print $2; }' | awk -F= '{ print $1; }'); do echo '-e '${VAR}'='${!VAR}' '; done`
+
+    echo "Starting $SERVICE:$IMAGE_VERSION $SEQ"
+
+    # Don't bother when service is already running
+    if [ "$(docker ps -a | grep coscale_$SERVICE$SEQ$)" ]; then
+      echo "The service ${SERVICE}${SEQ} already exists."
     else
-        LINKS=""
-    fi
-
-    if [ -e expose/$SERVICE ]; then
-        EXPOSED=`cat expose/$SERVICE`
-    else
-        EXPOSED=""
-    fi
-
-    VOLUMEFILE=volumes/$SERVICE
-    VOLUMES=""
-    if [ -e $VOLUMEFILE ]; then
-      for ENTRY in $(<$VOLUMEFILE); do
-        if [[ "$ENTRY" != "/"* ]]; then
-            ENTRY=`pwd`/$ENTRY
-        fi
-        VOLUMES="${VOLUMES}-v ${ENTRY}:Z "
-      done
-    fi
-
-    echo "Starting $SERVICE:$IMAGE_VERSION"
-    docker run -d \
-        $LINKS $EXPOSED $VOLUMES $DNS_SWITCHES \
-        -e "API_URL=$API_URL" \
-        -e "API_SUPER_USER=$API_SUPER_USER" \
-        -e "API_SUPER_PASSWD=$API_SUPER_PASSWD" \
-        -e "APP_URL=$APP_URL" \
-        -e "MAIL_SERVER=$MAIL_SERVER" \
-        -e "MAIL_PORT=$MAIL_PORT" \
-        -e "MAIL_SSL=$MAIL_SSL" \
-        -e "MAIL_AUTH=$MAIL_AUTH" \
-        -e "MAIL_USERNAME=$MAIL_USERNAME" \
-        -e "MAIL_PASSWORD=$MAIL_PASSWORD" \
-        -e "FROM_EMAIL=$FROM_EMAIL" \
-        -e "SUPPORT_EMAIL=$SUPPORT_EMAIL" \
-        -e "RUM_URL=$RUM_URL" \
-        -e "ENABLE_HTTPS=$ENABLE_HTTPS" \
-        -e "ANOMALY_EMAIL=$ANOMALY_EMAIL" \
+      docker run -d \
+        $(./get-docker-opts.sh $SERVICE $SEQ) $ENV_VARS_CONF \
         -e "COSCALE_VERSION=$IMAGE_VERSION" \
-        -e "CASSANDRA_CLEANER_SLACK=$CASSANDRA_CLEANER_SLACK" \
-        -e "USE_EXTERNAL_CASSANDRA=$USE_EXTERNAL_CASSANDRA" \
-        -e "EXTERNAL_CASSANDRA_ENDPOINTS=$EXTERNAL_CASSANDRA_ENDPOINTS" \
-        -e "DATASTORE_THREADS=$DATASTORE_THREADS" \
-        --name coscale_$SERVICE coscale/$SERVICE:$IMAGE_VERSION
+        --restart on-failure \
+        --hostname=coscale_$SERVICE$SEQ \
+        --name coscale_$SERVICE$SEQ coscale/$SERVICE:$IMAGE_VERSION
+    fi
 }
 
 # Run the data services
+STARTED=0
 for SERVICE in $DATA_SERVICES; do
-    if [ "$NAME" == "all" ] || [ "$NAME" == "data" ] || [ "$NAME" == "$SERVICE" ]; then
-        run $SERVICE $VERSION
+    if [ "$NAME" == "all" ] || [ "$NAME" == "data" ] || [ "$NAME" == $(get_service "$SERVICE") ] || [ "$NAME" == "$SERVICE" ]; then
+        run $(get_service $SERVICE) $VERSION $(get_seq $SERVICE)
+        STARTED=1
     fi
 done
 
-if [ "$NAME" == "all" ]; then
+if [ "$STARTED" == "1" ]; then
     echo "Sleeping 30 seconds to bring the data services up."
     sleep 30
 fi
 
 # Run the coscale services
 for SERVICE in $COSCALE_SERVICES $LB_SERVICE; do
-    if [ "$NAME" == "all" ] || [ "$NAME" == "coscale" ] || [ "$NAME" == "$SERVICE" ]; then
-        run $SERVICE $VERSION
+    if [ "$NAME" == "all" ] || [ "$NAME" == "coscale" ] || [ "$NAME" == $(get_service "$SERVICE") ] || [ "$NAME" == "$SERVICE" ]; then
+        run $(get_service $SERVICE) $VERSION $(get_seq $SERVICE)
+        STARTED=1
     fi
 done
+
+# Raise an error if no containers were started
+if [ "$STARTED" == "0" ]; then
+    echo "Error: no containers started."
+    exit 1
+fi

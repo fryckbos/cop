@@ -1,0 +1,149 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: coscale
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: coscale-agent
+  namespace: coscale
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  annotations:
+    rbac.authorization.kubernetes.io/autoupdate: "true"
+  labels:
+    kubernetes.io/bootstrapping: rbac-defaults
+  name: coscale-cluster-role
+rules:
+- apiGroups:
+  - '*'
+  resources:
+  - '*'
+  verbs:
+  - get
+  - list
+  - watch
+- nonResourceURLs:
+  - '*'
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  annotations:
+    rbac.authorization.kubernetes.io/autoupdate: "true"
+  labels:
+    kubernetes.io/bootstrapping: rbac-defaults
+  name: coscale-agent
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: coscale-cluster-role
+subjects:
+- kind: ServiceAccount
+  name: coscale-agent
+  namespace: coscale
+---
+apiVersion: extensions/v1beta1
+kind: ReplicaSet
+metadata:
+  labels:
+    name: coscale-agent-kubernetes-master
+  name: coscale-agent-kubernetes-master
+  namespace: coscale
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: coscale-agent-kubernetes-master
+    spec:
+      serviceAccountName: coscale-agent
+      tolerations:
+        - operator: "Exists"
+      containers:
+      - image: coscale/coscale-agent:latest
+        imagePullPolicy: Always
+        name: coscale-agent
+        env:
+        - name: APP_ID
+          value: "{{app_response.json.appId}}"
+        - name: ACCESS_TOKEN
+          value: "{{agent_response.json.accesstoken.token}}"
+        - name: TEMPLATE_ID
+          value: "{{agent_response.json.id}}"
+        - name: BASE_URL
+          value: "http://{{coscale.host}}"
+        - name: CERTIFICATE
+          value: "{{cert_response.json.CERT}}"
+        - name: COSCALE_KUBE_MON_MASTER
+          value: "true"
+        volumeMounts:
+        - name: dockersocket
+          mountPath: /var/run/docker.sock
+        - name: hostroot
+          mountPath: /host
+          readOnly: true
+      volumes:
+      - hostPath:
+          path: /var/run/docker.sock
+        name: dockersocket
+      - hostPath:
+          path: /
+        name: hostroot
+---
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  labels:
+    name: coscale-agent
+  name: coscale-agent
+  namespace: coscale
+spec:
+  template:
+    metadata:
+      labels:
+        name: coscale-agent
+    spec:
+      hostNetwork: true
+      serviceAccountName: coscale-agent
+      tolerations:
+        - operator: "Exists"
+      containers:
+      - image: coscale/coscale-agent
+        securityContext:
+          privileged: true
+        imagePullPolicy: Always
+        name: coscale-agent
+        env:
+        - name: APP_ID
+          value: "{{app_response.json.appId}}"
+        - name: ACCESS_TOKEN
+          value: "{{agent_response.json.accesstoken.token}}"
+        - name: TEMPLATE_ID
+          value: "{{agent_response.json.id}}"
+        - name: BASE_URL
+          value: "http://{{coscale.host}}"
+        - name: CERTIFICATE
+          value: "{{cert_response.json.CERT}}"
+        - name: COSCALE_KUBE_NODE_ONLY
+          value: "true"
+        volumeMounts:
+        - name: dockersocket
+          mountPath: /var/run/docker.sock
+        - name: hostroot
+          mountPath: /host
+          readOnly: true
+      volumes:
+      - hostPath:
+          path: /var/run/docker.sock
+        name: dockersocket
+      - hostPath:
+          path: /
+        name: hostroot

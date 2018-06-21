@@ -1,0 +1,44 @@
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  labels:
+    name: coscale-agent
+  name: coscale-agent
+spec:
+  template:
+    metadata:
+      labels:
+        name: coscale-agent
+    spec:
+      serviceAccount: coscale
+      hostNetwork: true
+      containers:
+      - image: coscale/coscale-agent
+        imagePullPolicy: Always
+        name: coscale-agent
+        securityContext:
+          privileged: true
+        env:
+        - name: APP_ID
+          value: "{{app_response.json.appId}}"
+        - name: ACCESS_TOKEN
+          value: "{{agent_response.json.accesstoken.token}}"
+        - name: TEMPLATE_ID
+          value: "{{agent_response.json.id}}"
+        - name: BASE_URL
+          value: "http://{{coscale.host}}"
+        - name: CERTIFICATE
+          value: "{{cert_response.json.CERT}}"
+        volumeMounts:
+        - name: dockersocket
+          mountPath: /var/run/docker.sock
+        - name: hostroot
+          mountPath: /host
+          readOnly: true
+      volumes:
+      - hostPath:
+          path: /var/run/docker.sock
+        name: dockersocket
+      - hostPath:
+          path: /
+        name: hostroot

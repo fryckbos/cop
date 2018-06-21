@@ -1,0 +1,27 @@
+---
+
+- name: Create label on sdc
+  parted:
+    device: /dev/sdc
+    label: msdos
+
+- name: Create primary partition on sdc
+  parted:
+    device: /dev/sdc
+    number: 1
+    part_type: primary
+    part_start: 0%
+    part_end: 100%
+    state: present
+
+- name: Create filesystem on sdc
+  filesystem:
+    fstype: xfs
+    dev: /dev/sdc1
+
+- name: Mount the filesystem on /opt/coscale
+  mount:
+    path: /opt/coscale
+    src: /dev/sdc1
+    fstype: xfs
+    state: mounted

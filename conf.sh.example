@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # VERSION and REGISTRY are provided by CoScale, don't change these.
-export VERSION="3.11.1"
+export VERSION="3.20.7"
 export REGISTRY=docker.coscale.com
 
 # Fill in the registry username and password provided by CoScale.
@@ -12,20 +12,17 @@ export REGISTRY_PASSWORD=
 export API_SUPER_USER=
 export API_SUPER_PASSWD=
 
-# Fill in the URL to access the CoScale API. Eg. API_URL=http://coscale.yourcompany.com
-export API_URL=
-# Fill in the URL to access the CoScale UI. Eg. APP_URL=http://coscale.yourcompany.com
-export APP_URL=
-# Fill in the URL to send RUM data to CoScale: RUM_URL has no protocol. Eg. RUM_URL=coscale.mycompany.com
-export RUM_URL=
+# Fill in the hostname of the CoScale machine.
+export CS_HOST=
 
-# Set ENABLE_HTTPS to 1 to use HTTPS. Place your certificates and private key in data/ssl/https.pem
+# Set ENABLE_HTTPS to 1 to use HTTPS. Place your certificate, intermediates and private key in data/ssl/https.pem
 export ENABLE_HTTPS=0
 
 # Provide a valid email server configuration below
-export MAIL_SERVER=cmail.coscale.com
+export MAIL_SERVER=
 export MAIL_PORT=25
 export MAIL_SSL=false
+export MAIL_TLS=false
 export MAIL_AUTH=false
 export MAIL_USERNAME=
 export MAIL_PASSWORD=
@@ -58,3 +55,15 @@ export CASSANDRA_CLEANER_SLACK=1
 
 # Tune the number of datastore workers (default:10)
 # export DATASTORE_THREADS=30
+
+## DO NOT UPDATE BELOW THIS LINE
+
+if [ "$ENABLE_HTTPS" == "1" ]; then
+    PREFIX="https://"
+else
+    PREFIX="http://"
+fi
+
+export API_URL=${PREFIX}${CS_HOST}
+export APP_URL=${PREFIX}${CS_HOST}
+export RUM_URL=${CS_HOST}

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 source conf.sh
 source services.sh
@@ -28,8 +28,8 @@ if [ "$1" == "--save" ]; then
 fi
 
 if [ $# -gt 1 ]; then
-        show_help
-        exit 1
+    show_help
+    exit 1
 fi
 
 NAME=${1:-all}
@@ -46,7 +46,7 @@ if [ "$NAME" == "base" ]; then
 fi
 
 function get_image {
-    SERVICE=$1
+    SERVICE=$(echo $1 | grep -o -e '^[^0-9]*')
     IMAGE_VERSION=$2
     echo coscale/$SERVICE:$IMAGE_VERSION
 }
@@ -59,7 +59,7 @@ function pull {
 
 IMAGES=""
 
-# Pull the third party services
+# Pull the data services
 for SERVICE in $DATA_SERVICES; do
     if [ "$NAME" == "all" ] || [ "$NAME" == "data" ] || [ "$NAME" == "$SERVICE" ]; then
         IMG=$(get_image $SERVICE $VERSION)
@@ -77,12 +77,14 @@ for SERVICE in $COSCALE_SERVICES $LB_SERVICE; do
     fi
 done
 
-# Pull the debug container
-if [ "$NAME" == "all" ] || [ "$NAME" == "diag" ]; then
-    IMG=$(get_image diag latest)
-    pull $IMG
-    IMAGES="$IMAGES $IMG"
-fi
+# Pull the extra containers
+for EXTRA in diag postgresql-init; do
+    if [ "$NAME" == "all" ] || [ "$NAME" == "extra" ] || [ "$NAME" == "$EXTRA" ]; then
+        IMG=$(get_image $EXTRA $VERSION)
+        pull $IMG
+        IMAGES="$IMAGES $IMG"
+    fi
+done
 
 # Save the images to a tgz
 if [ "$SAVE" == "true" ]; then

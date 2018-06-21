@@ -1,19 +1,42 @@
-#!/bin/bash
+#!/bin/bash -e
 
-SERVICE=$1
+VERSION=$1
+SERVICES=${2:-all}
 
-if [ "$SERVICE" == "" ]; then
-  echo "Usage : $0 [<SERVICE>/all/coscale/data]"
-elif [ "$SERVICE" == "agent-builder" ]; then
-  echo "upgrading agent-builder"
-  ./stop.sh haproxy && ./stop.sh api && ./run.sh api && ./connect.sh api /opt/coscale/agent-builder/update.sh && ./stop.sh api && ./run.sh api && ./run.sh haproxy
-elif [ "$SERVICE" == "all" ]; then
-  ./stop.sh && ./run.sh
-elif [ "$SERVICE" == "coscale" ]; then
-  ./stop.sh coscale && ./run.sh coscale
-elif [ "$SERVICE" == "data" ]; then
-  ./stop.sh data && ./run.sh data
-else
-  echo "upgrading service"
-  ./stop.sh $1 && ./run.sh $1
+function section {
+    echo
+    echo "--- $1 ---"
+    echo
+}
+
+section "Updating cop git repo"
+git pull
+
+section "Setting new version in conf.sh"
+sed -i.bak "s|VERSION=.*|VERSION=$VERSION|" conf.sh
+echo "Set to version $VERSION"
+
+section "Pulling docker images"
+./pull.sh
+
+section "Stopping $SERVICES services"
+./stop.sh $SERVICES
+
+if [ "$SERVICES" == "all" ]; then
+    section "Starting data services"
+    ./run.sh data
+    sleep 30
 fi
+
+section "Create actions to update agents"
+./run.sh api
+./connect.sh api /opt/coscale/agent-builder/update.sh
+./stop.sh api
+
+section "Starting coscale services"
+./run.sh coscale
+
+section "Removing old coscale images"
+set +e
+./diagnose.sh clean-images >/dev/null 2>&1
+echo "Done"

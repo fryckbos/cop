@@ -5,11 +5,13 @@ if [ "$#" -lt 1 ]; then
   echo "     bash : starts an interactive bash console (default)"
   echo "     log : get the full service log"
   echo "     tail : get a tailf of the service log"
+  echo "     restart : restart the process in the container"
   echo "     jstack : create a jstack of the Java process in the container"
   echo "     <cmd> : execute any command directly"
 fi
 
-SERVICE=$1
+CONTAINER=$1
+SERVICE=$(echo $CONTAINER | grep -o -e '^[^0-9]*')
 
 if [ "$#" == "1" ]; then
   ACTION=bash
@@ -29,24 +31,52 @@ else
     LOG=/var/log/rabbitmq/rabbit*.log
   elif [ "$SERVICE" == "rum" ]; then
     LOG=/var/log/nginx/*.log
+  elif [ "$SERVICE" == "streamingroller" ]; then
+    DOCKER_LOGS=true
+  elif [ "$SERVICE" == "streamingrollerwriteback" ]; then
+    DOCKER_LOGS=true
+  elif [ "$SERVICE" == "streamingtriggermatcher" ]; then
+    DOCKER_LOGS=true
+  elif [ "$SERVICE" == "anomalyaggregator" ]; then
+    DOCKER_LOGS=true
+  elif [ "$SERVICE" == "anomalydetector" ]; then
+    DOCKER_LOGS=true
+  elif [ "$SERVICE" == "kafka" ]; then
+    DOCKER_LOGS=true
+  elif [ "$SERVICE" == "zookeeper" ]; then
+    DOCKER_LOGS=true
   else
     LOG=/var/log/$SERVICE/current
   fi
 
-  if [ "$ACTION" == "log" ]; then
+  if [ "$ACTION" == "log" ] && [ "$DOCKER_LOGS" != "true" ]; then
     ACTION="cat $LOG"
-  elif [ "$ACTION" == "tail" ]; then
+  elif [ "$ACTION" == "tail" ] && [ "$DOCKER_LOGS" != "true" ]; then
     ACTION="tail -f -n 100 $LOG"
   elif [ "$ACTION" == "jstack" ]; then
     ACTION='jstack `ps aux | grep java | grep -v grep | awk '"'"'{ print $2; }'"'"'`'
+  elif [ "$ACTION" == "restart" ]; then
+    ACTION="sv restart $SERVICE"
+    if [ "$SERVICE" == "app" ] || [ "$SERVICE" == "api" ]; then
+      ACTION="rm /opt/coscale/$SERVICE/RUNNING_PID && $ACTION"
+    elif [ "$SERVICE" == "rum" ]; then
+      ACTION="/etc/init.d/nginx restart"
+    elif [ "$SERVICE" == "rabbitmq" ]; then
+      ACTION="/etc/init.d/rabbitmq-server restart"
+    elif [ "$SERVICE" == "cassandra" ] || [ "$SERVICE" == "memcached" ] || [ "$SERVICE" == "postgresql" ] || [ "$SERVICE" == "elasticsearch" ]; then
+      ACTION="/etc/init.d/$SERVICE restart"
+    elif [ "$SERVICE" == "haproxy" ]; then
+      ACTION="killall haproxy; /etc/init.d/haproxy start"
+    fi
   fi
 fi
 
-
-
-if [ "$SERVICE" == "postgresql" ] && [ "$1" == "migrate" ]; then
-  cat $2 | docker exec -i coscale_$SERVICE /bin/bash -c "export TERM=xterm && migrate"
+if [ "$SERVICE" == "postgresql" ] && [ "$1" == "psql" ]; then
+  docker exec -it coscale_$CONTAINER /bin/bash -c "PGPASSWORD=coscale psql -h localhost -U coscale -d app"
+elif [ "$ACTION" == "log" ]; then
+  docker logs coscale_$CONTAINER
+elif [ "$ACTION" == "tail" ]; then
+  docker logs -f --tail 100 coscale_$CONTAINER
 else
-  docker exec -it coscale_$SERVICE /bin/bash -c "export TERM=xterm && $ACTION"
+  docker exec -it coscale_$CONTAINER /bin/bash -c "export TERM=xterm && $ACTION"
 fi
-

@@ -1,3 +1,8 @@
 /conf.sh
-/data/**
-/debug/**
+/conf.sh.bak
+/services.override
+/get-docker-opts.override
+/data-cluster/conf.sh
+/data
+/debug
+/.project

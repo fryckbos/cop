@@ -1,0 +1,105 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: coscale-config
+data:
+  coscale.super.email: "" # <super email address>
+  coscale.super.passwd: "" # <super password address>
+  coscale.api.url: "http://coscale.company.com" # <api url>
+  coscale.app.url: "http://coscale.company.com" # <app url>
+  coscale.rum.url: "coscale.company.com" # <rum url (no http/https here)>
+  coscale.email.from: "" # <from email address to send emails>
+  coscale.email.support: "" # <email address to send the healthcheck emails to>
+  coscale.email.server: "mail.company.com" # <smtp server hostname>
+  coscale.email.port: "25" # <smtp server port>"
+  coscale.email.use_ssl: "false" # <true or false>
+  coscale.email.use_auth: "false" # <true or false>
+  coscale.email.username: "" # <username for the smtp server (required if auth is true)>
+  coscale.email.password: "" # <password for the smtp server (required if auth is true)>
+---
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: coscale-healthchecker
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: coscale-healthchecker
+    spec:
+      containers:
+      - name: healthchecker
+        image: coscale/healthchecker:1.0.0
+        env:
+        - name: API_URL
+          valueFrom:
+            configMapKeyRef:
+              name: coscale-config
+              key: coscale.api.url
+        - name: APP_URL
+          valueFrom:
+            configMapKeyRef:
+              name: coscale-config
+              key: coscale.app.url
+        - name: RUM_URL
+          valueFrom:
+            configMapKeyRef:
+              name: coscale-config
+              key: coscale.rum.url
+        - name: API_SUPER_USER
+          valueFrom:
+            configMapKeyRef:
+              name: coscale-config
+              key: coscale.super.email
+        - name: API_SUPER_PASSWD
+          valueFrom:
+            configMapKeyRef:
+              name: coscale-config
+              key: coscale.super.passwd
+        - name: SUPPORT_EMAIL
+          valueFrom:
+            configMapKeyRef:
+              name: coscale-config
+              key: coscale.email.support
+        - name: FROM_EMAIL
+          valueFrom:
+            configMapKeyRef:
+              name: coscale-config
+              key: coscale.email.from
+        - name: MAIL_SERVER
+          valueFrom:
+            configMapKeyRef:
+              name: coscale-config
+              key: coscale.email.server
+        - name: MAIL_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: coscale-config
+              key: coscale.email.port
+        - name: MAIL_SSL
+          valueFrom:
+            configMapKeyRef:
+              name: coscale-config
+              key: coscale.email.use_ssl
+        - name: MAIL_AUTH
+          valueFrom:
+            configMapKeyRef:
+              name: coscale-config
+              key: coscale.email.use_auth
+        - name: MAIL_USERNAME
+          valueFrom:
+            configMapKeyRef:
+              name: coscale-config
+              key: coscale.email.username
+        - name: MAIL_PASSWORD
+          valueFrom:
+            configMapKeyRef:
+              name: coscale-config
+              key: coscale.email.password
+        - name: TEST_HEALTH_ALERT
+          value: "true"
+        - name: CHECK_PERIOD
+          value: "60"
+        - name: IGNORE_CERTIFICATE_ERRORS
+          value: "false"

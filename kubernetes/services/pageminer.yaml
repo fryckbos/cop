@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pageminer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pageminer
+  template:
+    metadata:
+      labels:
+        app: pageminer
+    spec:
+      imagePullSecrets:
+      - name: coscale-registry
+      containers:
+      - name: pageminer
+        image: ${REGISTRY}/coscale/pageminer:${VERSION}

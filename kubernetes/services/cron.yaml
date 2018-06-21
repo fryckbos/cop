@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cron
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cron
+  template:
+    metadata:
+      labels:
+        app: cron
+    spec:
+      imagePullSecrets:
+      - name: coscale-registry
+      containers:
+      - name: cron
+        image: ${REGISTRY}/coscale/cron:${VERSION}
