@@ -45,6 +45,8 @@ else
     DOCKER_LOGS=true
   elif [ "$SERVICE" == "zookeeper" ]; then
     DOCKER_LOGS=true
+  elif [ "$SERVICE" == "kafkamirror" ]; then
+    DOCKER_LOGS=true
   else
     LOG=/var/log/$SERVICE/current
   fi
