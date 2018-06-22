@@ -26,6 +26,14 @@ function get_seq {
     echo $1 | grep -o -e '[0-9]*$'
 }
 
+LOG_ROTATE=""
+if [ "x$DOCKER_LOG_MAX_SIZE" != "x" ]; then
+    LOG_ROTATE="$LOG_ROTATE --log-opt max-size=$DOCKER_LOG_MAX_SIZE"
+    if [ "x$DOCKER_LOG_MAX_FILE" != "x" ]; then
+        LOG_ROTATE="$LOG_ROTATE --log-opt max-file=$DOCKER_LOG_MAX_FILE"
+    fi
+fi
+
 function run {
     SERVICE=$1
     IMAGE_VERSION=$2
@@ -40,9 +48,10 @@ function run {
       echo "The service ${SERVICE}${SEQ} already exists."
     else
       docker run -d \
-        $(./get-docker-opts.sh $SERVICE $SEQ) $ENV_VARS_CONF \
+        $ENV_VARS_CONF $(./get-docker-opts.sh $SERVICE $SEQ) \
         -e "COSCALE_VERSION=$IMAGE_VERSION" \
         --restart on-failure \
+        $LOG_ROTATE \
         --hostname=coscale_$SERVICE$SEQ \
         --name coscale_$SERVICE$SEQ coscale/$SERVICE:$IMAGE_VERSION
     fi
