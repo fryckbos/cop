@@ -46,6 +46,11 @@ function usage {
 
 LOGGER_NAME=oplogger
 
+
+function get_service {
+    echo $1 | grep -o -e '^[^0-9]*'
+}
+
 function info {
     if [ "$QUIET" == "false" ]; then
         echo "$1"
@@ -405,28 +410,32 @@ function kafka {
     ACTION=${1:-help}
     shift
 
+    KAFKA_CONTAINER="no_kafka_container_found"
+    for SERVICE in $DATA_SERVICES $COSCALE_SERVICES; do
+        if [ $(get_service "$SERVICE") == "kafka" ]; then
+            KAFKA_CONTAINER="$SERVICE"
+        fi
+    done
+
+    AVOID_JMX_PORT_COLLISION="JMX_PORT=6667"
+    ZOOKEEPER_CONNECT=$(docker exec coscale_$KAFKA_CONTAINER bash -c 'echo "$KAFKA_ZOOKEEPER_CONNECT"')
+
     if [ "$ACTION" == "list-consumer-groups" ]; then
-        ./connect.sh kafka kafka-consumer-groups --bootstrap-server localhost:9092 --list
+        ./connect.sh "$KAFKA_CONTAINER" "$AVOID_JMX_PORT_COLLISION" kafka-consumer-groups --bootstrap-server localhost:9092 --list
     elif [ "$ACTION" == "describe-consumer-group" ]; then
         GROUP=$1
-        ./connect.sh kafka kafka-consumer-groups --bootstrap-server localhost:9092 --describe --group $GROUP
+        ./connect.sh "$KAFKA_CONTAINER" "$AVOID_JMX_PORT_COLLISION" kafka-consumer-groups --bootstrap-server localhost:9092 --describe --group $GROUP
     elif [ "$ACTION" == "consumer-group-seek-to-end" ]; then
         GROUP=$1
-        ./connect.sh kafka kafka-consumer-groups --bootstrap-server localhost:9092 --reset-offsets --to-latest --execute --all-topics --group $GROUP
+        ./connect.sh "$KAFKA_CONTAINER" "$AVOID_JMX_PORT_COLLISION" kafka-consumer-groups --bootstrap-server localhost:9092 --reset-offsets --to-latest --execute --all-topics --group $GROUP
     elif [ "$ACTION" == "list-topics" ]; then
-        ./connect.sh kafka kafka-topics --zookeeper zookeeper:32181 --list
-    elif [ "$ACTION" == "log-topics" ]; then
-        docker run -it --rm --link coscale_kafka:kafka coscale/streamingroller:$VERSION java -cp /opt/coscale/streamingroller/bin/streamingroller-$VERSION-jar-with-dependencies.jar coscale.streamingcore.kafka.LogTopics -h kafka:9092 $@
-    elif [ "$ACTION" == "manage-topics" ]; then
-        docker run -it --rm --link coscale_kafka:kafka coscale/streamingroller:$VERSION java -cp /opt/coscale/streamingroller/bin/streamingroller-$VERSION-jar-with-dependencies.jar coscale.streamingcore.kafka.ManageTopics -h kafka:9092 $@
+        ./connect.sh "$KAFKA_CONTAINER" "$AVOID_JMX_PORT_COLLISION" kafka-topics --zookeeper $ZOOKEEPER_CONNECT --list
     elif [ "$ACTION" == "describe-topic" ]; then
         TOPIC=$1
-        ./connect.sh kafka kafka-topics --zookeeper zookeeper:32181 --describe --topic $TOPIC
+        ./connect.sh "$KAFKA_CONTAINER" "$AVOID_JMX_PORT_COLLISION" kafka-topics --zookeeper $ZOOKEEPER_CONNECT --describe --topic $TOPIC
     elif [ "$ACTION" == "delete-topic" ]; then
         TOPIC=$1
-        ./connect.sh kafka kafka-topics --zookeeper zookeeper:32181 --delete --topic $TOPIC
-    elif [ "$ACTION" == "changelogsize" ]; then
-        find 'data/kafka/data' -regex '.*changelog.*' -print0 | du --files0-from=- -ch | sort -h
+        ./connect.sh "$KAFKA_CONTAINER" "$AVOID_JMX_PORT_COLLISION" kafka-topics --zookeeper $ZOOKEEPER_CONNECT --delete --topic $TOPIC
     else
         kafka_usage
     fi
@@ -447,12 +456,9 @@ function kafka_usage {
     echo "    consumer-group-seek-to-end [group]  seek to the end of all partitions on all topics for the specified consumer group"
     echo ""
     echo "    list-topics              list all kafka topics" 
-    echo "    log-topics [opts]        view a live stream of messages on a topic"
-    echo "    manage-topics [opts]     create or update configurations of topics"
     echo "    describe-topic [topic]   describe a kafka topic"
     echo "    delete-topic [topic]     delete a kafka topic"
     echo ""
-    echo "    changelogsize            get the total changelog size"
     exit 0
 }
 
