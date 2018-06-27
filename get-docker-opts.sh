@@ -43,11 +43,13 @@ else
       done
     fi
 
+    LOG_ROTATE="--log-opt max-size=100m --log-opt max-file=10 "
+
     if [ -f misc/$SERVICE ]; then
         MISC=$(cat misc/$SERVICE)
     else
         MISC=""
     fi
 
-    echo "$LINKS $EXPOSED $VOLUMES $MISC"
+    echo "$LINKS $EXPOSED $VOLUMES $LOG_ROTATE $MISC"
 fi
