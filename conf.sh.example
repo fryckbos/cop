@@ -56,6 +56,10 @@ export CASSANDRA_CLEANER_SLACK=1
 # Tune the number of datastore workers (default:10)
 # export DATASTORE_THREADS=30
 
+# Enable docker log rotation 
+# export DOCKER_LOG_MAX_SIZE=100m
+# export DOCKER_LOG_MAX_FILE=10
+
 ## DO NOT UPDATE BELOW THIS LINE
 
 if [ "$ENABLE_HTTPS" == "1" ]; then
