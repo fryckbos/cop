@@ -1,6 +1,7 @@
 /conf.sh
 /conf.sh.bak
 /services.override
+/service-settings
 /get-docker-opts.override
 /data-cluster/conf.sh
 /data

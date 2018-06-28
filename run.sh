@@ -40,7 +40,7 @@ function run {
       echo "The service ${SERVICE}${SEQ} already exists."
     else
       docker run -d \
-        $(./get-docker-opts.sh $SERVICE $SEQ) $ENV_VARS_CONF \
+        $ENV_VARS_CONF $(./get-docker-opts.sh $SERVICE $SEQ) \
         -e "COSCALE_VERSION=$IMAGE_VERSION" \
         --restart on-failure \
         --hostname=coscale_$SERVICE$SEQ \
