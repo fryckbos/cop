@@ -43,7 +43,7 @@ else
       done
     fi
 
-    LOG_ROTATE="--log-opt max-size=100m --log-opt max-file=10 "
+    #LOG_ROTATE="--log-opt max-size=100m --log-opt max-file=10 "
 
     if [ -f misc/$SERVICE ]; then
         MISC=$(cat misc/$SERVICE)
